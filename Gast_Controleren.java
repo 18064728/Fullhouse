@@ -50,7 +50,7 @@ public class Gast_Controleren extends JDialog {
         try { //tries to make a connection with the database
             connection = DriverManager.getConnection(
                     "jdbc:mysql://meru.hhs.nl/18064728?useLegacyDatetimeCode=false&serverTimezone=Europe/Amsterdam",
-                    "18064728", "aeph3vo3aV");
+                    "leerlingnr", "password");
 
             ResultSet resultSet = connection.createStatement().executeQuery("SELECT * from gast");
             System.out.println("connected to database");
