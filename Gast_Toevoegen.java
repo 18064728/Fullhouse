@@ -68,7 +68,7 @@ public class Gast_Toevoegen extends JDialog {
             try { //tries to make a connection with the database
                 connection = DriverManager.getConnection(
                         "jdbc:mysql://meru.hhs.nl/18064728?useLegacyDatetimeCode=false&serverTimezone=Europe/Amsterdam",
-                        "18064728", "aeph3vo3aV");
+                        "leerlingnr", "password");
                 System.out.println("connected to database");
             } catch (SQLException e) { //error message if there's no connection with the database
                 System.out.println("can't connect to the database, please contact tech-support");
