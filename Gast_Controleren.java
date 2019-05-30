@@ -152,7 +152,17 @@ public class Gast_Controleren extends JDialog {
                                 vrouw.setSelected(true);
                             }
                             adresTxt.setText(list.getSelectedValue().getAdres());
-                            //geboortedatum moet nog pre-selected worden
+
+                            String gbdString = list.getSelectedValue().getGeboortedatum().toString();
+                            Date date = Date.valueOf(gbdString);
+                            String[] parts = date.toString().split("-");
+                            int jaar = Integer.parseInt(parts[0]);
+                            int maand = Integer.parseInt(parts[1]);
+                            int dag = Integer.parseInt(parts[2]);
+
+                            dayList.setSelectedIndex(dag-1);
+                            monthList.setSelectedIndex(maand-1);
+                            yearList.setSelectedIndex(jaar-1900);
                             postcodeTxt.setText(list.getSelectedValue().getPostcode());
                             woonplaatsTxt.setText(list.getSelectedValue().getWoonplaats());
                             telefoonnummerTxt.setText(list.getSelectedValue().getTelefoonnummer());
