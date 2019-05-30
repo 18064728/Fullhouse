@@ -4,55 +4,55 @@ import javax.swing.*;
 import java.awt.*;
 import java.sql.*;
 import java.util.ArrayList;
-import javax.swing.text.MaskFormatter;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
 
+/**
+ * Medewerken vult de gegevens van het formulier in en drukt op 'voeg gast toe' om de gast toe te voegen aan de database
+ * of drukt op 'terug' om terug te gaan naar 'Gasten'
+ */
 public class Gast_Toevoegen extends JDialog {
 
     //JDIALOG
     private static final int width = 500;
     private static final int height = 500;
-    private static final String title = "Gast Toevoegen";
-
-    //DATABASE
-    private Connection connection;
-    private PreparedStatement ps;
+    private static final String title = "Gast toevoegen";
 
     //ATTRIBUTES
-    private String naam;
-    private String geslacht = "null";
-    private LocalDate geboortedatum;
-    private String gbdString;
+    protected String naam;
+    protected String geslacht = "null";
+    protected LocalDate geboortedatum;
+    protected String gbdString;
 
-    private ArrayList<Integer> years;
-    private ArrayList<Integer> months;
-    private ArrayList<Integer> days;
+    protected ArrayList<Integer> years;
+    protected ArrayList<Integer> months;
+    protected ArrayList<Integer> days;
+    protected int day;
+    protected int month;
+    protected int year;
 
-    private String adres;
-
-    private String postcode;
-    private MaskFormatter pformatter;
-
-    private String woonplaats;
-
-    private String telefoonnummer;
-
-    private String email;
+    protected String adres;
+    protected String postcode;
+    protected String woonplaats;
+    protected String telefoonnummer;
+    protected String email;
 
     //COMPONENTS
-    private JFormattedTextField naamTxt;
-    private JRadioButton man;
-    private JRadioButton vrouw;
-    private JFormattedTextField adresTxt;
-    private JFormattedTextField postcodeTxt;
-    private JFormattedTextField woonplaatsTxt;
-    private JFormattedTextField telefoonnummerTxt;
-    private JFormattedTextField emailTxt;
+    protected JFormattedTextField naamTxt;
+    protected JRadioButton man;
+    protected JRadioButton vrouw;
+    protected JComboBox<Object> dayList;
+    protected JComboBox<Object> monthList;
+    protected JComboBox<Object> yearList;
+    protected JFormattedTextField adresTxt;
+    protected JFormattedTextField postcodeTxt;
+    protected JFormattedTextField woonplaatsTxt;
+    protected JFormattedTextField telefoonnummerTxt;
+    protected JFormattedTextField emailTxt;
+    protected JButton terugBtn;
 
     public static void main(String[] args) {
 
@@ -66,18 +66,10 @@ public class Gast_Toevoegen extends JDialog {
     public Gast_Toevoegen() {
 
             try { //tries to make a connection with the database
-                connection = DriverManager.getConnection(
-                        "jdbc:mysql://meru.hhs.nl/18064728?useLegacyDatetimeCode=false&serverTimezone=Europe/Amsterdam",
-                        "leerlingnr", "password");
+                ConnectionManager.getConnection();
                 System.out.println("connected to database");
             } catch (SQLException e) { //error message if there's no connection with the database
                 System.out.println("can't connect to the database, please contact tech-support");
-            }
-
-            try {
-                pformatter = new MaskFormatter("####??");
-            } catch (ParseException e) {
-                e.printStackTrace();
             }
 
                 //JPanel
@@ -95,7 +87,7 @@ public class Gast_Toevoegen extends JDialog {
                 bg.add(man);
                 bg.add(vrouw);
 
-                //**date of birth
+                // date of birth
                 JLabel yearLbl = new JLabel("year");
                 years = new ArrayList<>(); //number of year
 
@@ -105,13 +97,11 @@ public class Gast_Toevoegen extends JDialog {
                 JLabel dayLbl = new JLabel("day");
                 days = new ArrayList<>(); // day of month
 
-                getDate(); //gets current date to add to ComboBox
-                JComboBox<Object> dayList = new JComboBox<>(days.toArray());
-                JComboBox<Object> monthList = new JComboBox<>(months.toArray());
-                JComboBox<Object> yearList = new JComboBox<>(years.toArray());
-                yearList.setSelectedIndex(119);
-                //date of birth**
-
+                addDate(); // sets comboboxes to current date so user will be forced to change it
+                dayList = new JComboBox<>(days.toArray());
+                monthList = new JComboBox<>(months.toArray());
+                yearList = new JComboBox<>(years.toArray());
+                yearList.setSelectedIndex(yearList.getItemCount()-1);
 
                 //adres
                 JLabel adresLbl = new JLabel("adres: ");
@@ -119,8 +109,7 @@ public class Gast_Toevoegen extends JDialog {
 
                 //postcode
                 JLabel postcodeLbl = new JLabel("postcode: ");
-                postcodeTxt = new JFormattedTextField(pformatter);
-                //postcodeTxt.setText("1234ab");
+                postcodeTxt = new JFormattedTextField();
                 postcodeTxt.setToolTipText("bv. 1234ab");
 
                 //woonplaats
@@ -135,8 +124,11 @@ public class Gast_Toevoegen extends JDialog {
                 JLabel emailLbl = new JLabel("email: ");
                 emailTxt = new JFormattedTextField();
 
-                //adds guest button
-                JButton addGuest = new JButton("voeg gast toe");
+                //add guest button
+                JButton voegToeBtn = new JButton("voeg gast toe");
+
+                //terug
+                terugBtn = new JButton("terug");
 
                 //adds components
                 panel.add(naamLbl);
@@ -168,14 +160,15 @@ public class Gast_Toevoegen extends JDialog {
                 panel.add(emailTxt);
 
                 panel.add(Box.createRigidArea(new Dimension(0, 25)));
-                panel.add(addGuest);
+                panel.add(voegToeBtn);
+                panel.add(terugBtn);
                 add(panel);
 
-        class AddGuest implements ActionListener {
+        /**
+         * voegt de gast toe aan de database
+         */
+        class VoegToe implements ActionListener {
             public void actionPerformed(ActionEvent e) {
-                int day;
-                int month;
-                int year;
 
                 try { //adds guest to database
                     naam = naamTxt.getText();
@@ -203,9 +196,8 @@ public class Gast_Toevoegen extends JDialog {
                     }
 
                     if (isValidInput()) { //adds guest to the database if the input is valid
-                        ps = connection.prepareStatement(
-                                "INSERT INTO gast (naam, geslacht, geboortedatum, adres, postcode, woonplaats, telefoonnummer, email) " +
-                                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?);");
+                        PreparedStatement ps = ConnectionManager.getConnection().prepareStatement("INSERT INTO gast (naam, geslacht, geboortedatum, adres, postcode, woonplaats, telefoonnummer, email) " +
+                                                                                                  "VALUES (?, ?, ?, ?, ?, ?, ?, ?);");
                         ps.setString(1, naam);
                         ps.setString(2, geslacht);
                         ps.setString(3, gbdString);
@@ -217,6 +209,9 @@ public class Gast_Toevoegen extends JDialog {
                         ps.executeUpdate();
                         System.out.println("Guest is added to the database");
                         dispose();
+                        new Gasten();
+                    } else {
+                        JOptionPane.showMessageDialog(panel,"gegevens zijn nog onjuist ingevoerd");
                     }
 
                 } catch (underageException ex1) {
@@ -229,11 +224,23 @@ public class Gast_Toevoegen extends JDialog {
 
         }
 
-        ActionListener listener = new AddGuest();
-        addGuest.addActionListener(listener);
+        /**
+         * gaat terug naar 'Gasten'
+         */
+        class Terug implements ActionListener {
+            public void actionPerformed(ActionEvent e) {
+                dispose();
+                new Gasten();
+            }
+        }
+
+        ActionListener voegToe = new VoegToe();
+        ActionListener terug = new Terug();
+        voegToeBtn.addActionListener(voegToe);
+        terugBtn.addActionListener(terug);
     }
 
-    private void getDate() {
+    private void addDate() {
         years = new ArrayList<>();
         months = new ArrayList<>();
         days = new ArrayList<>();
@@ -256,50 +263,72 @@ public class Gast_Toevoegen extends JDialog {
         }
     }
 
+    /**
+     * checkt of de gast 18 jaar is
+     * @return true als de gast 18 is, false als dat niet zo is
+     */
     private Boolean is18() {
         LocalDate now = LocalDate.now();
         int age = Period.between(geboortedatum, now).getYears();
         return  age >= 18;
     }
 
+    /**
+     * checkt of de gegevens juist ingevuld zijn
+     * @return true als de gegevens juist zijn, false als dat niet zo is
+     */
     private Boolean isValidInput() { //checks if input is valid
-        // boolean validInput = false;
 
-        if (naam.equals("")) {
-            System.out.println("vul een naam in a.u.b.");
-            naamTxt.setText("vul een naam in a.u.b.");
-            return false;
-        } if (naam.matches(".*\\d.*")) {
-            System.out.println("naam mag geen nummers bevatten");
-            naamTxt.setText("naam mag geen nummers bevatten");
-            return false;
-        } if (geslacht.equals("null")) {
-            System.out.println("geen geslacht gekozen");
-            return false;
-        } if (adres.equals("")) {
-            System.out.println("vul een adres in a.u.b.");
-            adresTxt.setText("vul een adres in a.u.b.");
-            return false;
-        } if (postcode.equals("")) {
-            System.out.println("vul een postcode in a.u.b.");
-            postcodeTxt.setText("vul een postcode in a.u.b.");
-        } if (woonplaats.equals("")) {
-            System.out.println("vul een woonplaats in a.u.n.");
-            woonplaatsTxt.setText("vul een woonplaats in a.u.b.");
-            return false;
-        } if (telefoonnummer.equals("")) {
-            System.out.println("vul een telefoonnummer in a.u.b.");
-            telefoonnummerTxt.setText("vul een telefoonnummer in a.u.b.");
-            return false;
-        } if (email.equals("")) {
-            System.out.println("vul een email in a.u.b.");
-            emailTxt.setText("vul een email in a.u.b.");
-            return false;
-        } else {
-            return true;
-        }
+            if (naam.equals("")) {
+                System.out.println("vul een naam in a.u.b.");
+                naamTxt.setText("vul een naam in a.u.b.");
+                return false;
+            }
+            if (naam.matches(".*\\d.*")) {
+                System.out.println("naam mag geen nummers bevatten");
+                naamTxt.setText("naam mag geen nummers bevatten");
+                return false;
+            }
+            if (geslacht.equals("null")) {
+                System.out.println("geen geslacht gekozen");
+                return false;
+            }
+            if (adres.equals("")) {
+                System.out.println("vul een adres in a.u.b.");
+                adresTxt.setText("vul een adres in a.u.b.");
+                return false;
+            }
+            if (postcode.equals("")) {
+                System.out.println("vul een postcode in a.u.b.");
+                postcodeTxt.setText("vul een postcode in a.u.b.");
+                return false;
+            }
+            if (woonplaats.equals("")) {
+                System.out.println("vul een woonplaats in a.u.b.");
+                woonplaatsTxt.setText("vul een woonplaats in a.u.b.");
+                return false;
+            }
+            if (telefoonnummer.equals("")) {
+                System.out.println("vul een telefoonnummer in a.u.b.");
+                telefoonnummerTxt.setText("vul een telefoonnummer in a.u.b.");
+                return false;
+            }
+            if (telefoonnummer.length() >= 12) {
+                System.out.println("telefoonnummer te lang");
+                return false;
+            }
+            if (email.equals("")) {
+                System.out.println("vul een email in a.u.b.");
+                emailTxt.setText("vul een email in a.u.b.");
+                return false;
+            } else {
+                return true;
+            }
     }
 
+    /**
+     * custom Exception voor als de gast nog geen 18 is
+     */
      private class underageException extends Exception {
         private underageException() {
         }
