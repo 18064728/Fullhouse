@@ -17,6 +17,18 @@ class ConnectionManager {
 }
 
 /**
+ * Met de ListenerManager kan je de alle ActionListeners van een JButton removen
+ */
+class ListenerManager {
+    public static void deleteActionListeners(JButton button) {
+        ActionListener[] ac = button.getActionListeners();
+        for (ActionListener actionListener : ac) {
+            button.removeActionListener(actionListener);
+        }
+    }
+}
+
+/**
  * Object Gast zoals die in de database hoort te staan
  */
 public class Gast {
