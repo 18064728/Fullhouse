@@ -6,7 +6,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 /**
- * geeft de medewerker de mogelijkheid om een gast toe te voegen of overzicht te krijgen
+ * geeft de medewerker de mogelijkheid om een gast toe te voegen of overzicht ervan te krijgen
  * of om terug te gaan naar class 'FullHouse'
  */
 public class Gasten extends JDialog {
