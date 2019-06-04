@@ -222,9 +222,6 @@ public class Masterclass_Toevoegen extends JDialog {
         //gaat terug naar 'Toernooien'
         class Terug implements ActionListener {
             public void actionPerformed(ActionEvent e) {
-                JDialog d = new Toernooien();
-                d.setVisible(true);
-                d.setSize(300,400);
                 dispose();
             }
         }
