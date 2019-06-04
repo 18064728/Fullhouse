@@ -1,14 +1,10 @@
 package fullhouse;
 
 import javax.swing.*;
-import java.awt.*;
 import java.sql.*;
 import java.util.ArrayList;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.Date;
 
 /**
  * Medewerken vult de gegevens van het formulier in en drukt op 'voeg masterclass toe' om de masterclass toe te voegen aan de database
@@ -16,19 +12,15 @@ import java.util.Date;
  */
 public class Masterclass_Toevoegen extends JDialog {
 
-    //JDIALOG
-    private static final int width = 500;
-    private static final int height = 550;
-    private static final String title = "Masterclass toevoegen";
-
     //ATTRIBUTES
-    private LocalDate datum;
+    private String datum;
     private String locatie;
-    private Time begintijd;
-    private Time eindtijd;
+    private String begintijd;
+    private String eindtijd;
     private int kosten;
     private int min_rating;
     private String bekende_pokerspeler;
+    private ArrayList<String>pokerspelers;
 
     private ArrayList<Integer> jaren;
     private ArrayList<Integer> maanden;
@@ -47,26 +39,21 @@ public class Masterclass_Toevoegen extends JDialog {
     private JSpinner eindtijdMin;
     private JSpinner eindtijdUur;
 
-    private JSpinner kostensp;
-    private JComboBox min_ratingCb;
+    private JSpinner min_ratingSp;
 
-    protected JButton terugBtn1;
-    protected JButton voegToeBtn;
-
-    public static void main(String[] args) {
-        JDialog d = new Masterclass_Toevoegen();
-        d.setSize(width, height);
-        d.setTitle(title);
-        d.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        d.setResizable(false);
-        d.setVisible(true);
-    }
+    private JComboBox<Object> pokerspelersCb;
 
     Masterclass_Toevoegen() {
 
         try { //tries to make a connection with the database
-            ConnectionManager.getConnection();
-            System.out.println("connected to database");
+            pokerspelers = new ArrayList<>();
+            Connection conn = ConnectionManager.getConnection();
+            ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM bekende_pokerspeler");
+
+            while (rs.next()) {
+                pokerspelers.add(rs.getString("naam"));
+            }
+
         } catch (SQLException e) { //error message if there's no connection with the database
             System.out.println("can't connect to the database, please contact tech-support");
         }
@@ -94,7 +81,6 @@ public class Masterclass_Toevoegen extends JDialog {
         JLabel datumJaarLbl = new JLabel("jaar");
         datumJaarLbl.setBounds(225,0,50,25);
         panel.add(datumJaarLbl);
-
 
         jaren = new ArrayList<>(); //number of year
         maanden = new ArrayList<>(); // month of year
@@ -161,7 +147,7 @@ public class Masterclass_Toevoegen extends JDialog {
         panel.add(kostenLbl);
 
         SpinnerNumberModel kostenModel = new SpinnerNumberModel(0,0,1000,10);
-        kostensp = new JSpinner(kostenModel);
+        JSpinner kostensp = new JSpinner(kostenModel);
         kostensp.setBounds(110,225,75,25);
         panel.add(kostensp);
 
@@ -170,31 +156,26 @@ public class Masterclass_Toevoegen extends JDialog {
         panel.add(min_ratingLbl);
 
         SpinnerNumberModel model98 = new SpinnerNumberModel(0,0,200,1);
-        JSpinner max_inschrijvingenSp = new JSpinner(model98);
-        max_inschrijvingenSp.setBounds(110,275,50,25);
-        panel.add(max_inschrijvingenSp);
+        min_ratingSp = new JSpinner(model98);
+        min_ratingSp.setBounds(110,275,50,25);
+        panel.add(min_ratingSp);
 
         JLabel inleggeldLbl = new JLabel("<html>bekende<br>pokerspeler</html>");
         inleggeldLbl.setBounds(5,325, 75,30);
         panel.add(inleggeldLbl);
 
-        JComboBox pokerspelers = new JComboBox();
-        //todo fill combobox with data 'from SELECT naam from bekende_pokerspeler'
+        pokerspelersCb = new JComboBox<>(pokerspelers.toArray());
+        pokerspelersCb.setBounds(110,325,125,25);
+        panel.add(pokerspelersCb);
 
-        JLabel inschrijfdatumLbl = new JLabel("inschrijfdatum");
-        inschrijfdatumLbl.setBounds(5,425,100,25);
-        panel.add(inschrijfdatumLbl);
-
-        voegToeBtn = new JButton("voeg gast toe");
-        voegToeBtn.setBounds(100,475,120,30);
+        JButton voegToeBtn = new JButton("voeg masterclass toe");
+        voegToeBtn.setBounds(100,475,160,30);
         panel.add(voegToeBtn);
 
-        terugBtn1 = new JButton("terug");
-        terugBtn1.setBounds(250,475,100,30);
+        JButton terugBtn1 = new JButton("terug");
+        terugBtn1.setBounds(275,475,100,30);
         panel.add(terugBtn1);
 
-        panel.add(voegToeBtn);
-        panel.add(terugBtn1);
         add(panel);
 
         //voegt de toernooi toe aan de database
@@ -204,21 +185,23 @@ public class Masterclass_Toevoegen extends JDialog {
                 datumDay = dag.getSelectedIndex() + 1;
                 datumMonth = maand.getSelectedIndex() + 1;
                 datumYear = jaar.getSelectedIndex() + 2019;
-                //datum = LocalDate.of(datumDay,datumMonth,datumYear);
-                String datumString = datumYear + "-" + datumMonth + "-" + datumDay;
+                datum = datumYear + "-" + datumMonth + "-" + datumDay;
+                locatie = locaties.getItemAt(locaties.getSelectedIndex());
+                begintijd = begintijdUur.getValue().toString() + ":" + begintijdMin.getValue().toString();
+                eindtijd = eindtijdUur.getValue().toString() + ":" + eindtijdMin.getValue().toString();
+                kosten = Integer.parseInt(kostensp.getValue().toString());
+                min_rating = Integer.parseInt(min_ratingSp.getValue().toString());
+                bekende_pokerspeler = pokerspelersCb.getItemAt(pokerspelersCb.getSelectedIndex()).toString();
 
-                String begintijdStr = begintijdUur.getValue().toString() + ":" + begintijdMin.getValue().toString();
-                System.out.println("begintijd: " + begintijdStr);
-                String eindtijdStr = eindtijdUur.getValue().toString() + ":" + eindtijdMin.getValue().toString();
-                System.out.println("eindtijd: " + eindtijdStr);
+                System.out.println(datum);
 
-               /* if (isValidInput()) {
+                if (isValidInput()) {
                     try { //adds toernooi to database
-                        PreparedStatement ps = ConnectionManager.getConnection().prepareStatement("INSERT INTO masterclass (datum, locatie, begintijd, eindtijd, kosten, min_rating, bekende_pokerspeler) VALUES (?, ?, ?, ?, ?, ?);");
-                        ps.setString(1, datumString);
+                        PreparedStatement ps = ConnectionManager.getConnection().prepareStatement("INSERT INTO masterclass (datum, locatie, begintijd, eindtijd, kosten, min_rating, bekende_pokerspeler) VALUES (?, ?, ?, ?, ?, ?, ?);");
+                        ps.setString(1, datum);
                         ps.setString(2, locatie);
-                        ps.setString(3, begintijdStr);
-                        ps.setString(4, eindtijdStr);
+                        ps.setString(3, begintijd);
+                        ps.setString(4, eindtijd);
                         ps.setInt(5,kosten);
                         ps.setInt(6,min_rating);
                         ps.setString(7, bekende_pokerspeler);
@@ -232,7 +215,7 @@ public class Masterclass_Toevoegen extends JDialog {
                     }
                 } else {
                     JOptionPane.showMessageDialog(null,"niet alle velden zijn correct ingevuld");
-                }*/
+                }
             }
         }
 
@@ -245,7 +228,6 @@ public class Masterclass_Toevoegen extends JDialog {
                 dispose();
             }
         }
-
         ActionListener voegToe = new VoegToe();
         ActionListener terug = new Terug();
         voegToeBtn.addActionListener(voegToe);
