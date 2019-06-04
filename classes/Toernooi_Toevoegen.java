@@ -1,14 +1,10 @@
 package fullhouse;
 
 import javax.swing.*;
-import java.awt.*;
 import java.sql.*;
 import java.util.ArrayList;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.Date;
 
 /**
  * Medewerken vult de gegevens van het formulier in en drukt op 'voeg toernooi toe' om het toernooi toe te voegen aan de database
@@ -16,21 +12,16 @@ import java.util.Date;
  */
 public class Toernooi_Toevoegen extends JDialog {
 
-    //JDIALOG
-    private static final int width = 500;
-    private static final int height = 550;
-    private static final String title = "Toernooi toevoegen";
-
     //ATTRIBUTES
-    private LocalDate datum;
+    private String datum;
     private String locatie;
-    private Time begintijd;
-    private Time eindtijd;
+    private String begintijd;
+    private String eindtijd;
     private String beschrijving;
     private String conditie;
     private int max_inschrijvingen;
     private int inleggeld;
-    private LocalDate inschrijfdatum;
+    private String inschrijfdatum;
 
     private ArrayList<Integer> years;
     private ArrayList<Integer> months;
@@ -58,18 +49,6 @@ public class Toernooi_Toevoegen extends JDialog {
 
     private JTextField beschrijvingTxt;
     private JTextField conditieTxt;
-
-    protected JButton terugBtn1;
-    protected JButton voegToeBtn;
-
-    public static void main(String[] args) {
-        JDialog d = new Toernooi_Toevoegen();
-        d.setSize(width, height);
-        d.setTitle(title);
-        d.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        d.setResizable(false);
-        d.setVisible(true);
-    }
 
     Toernooi_Toevoegen() {
 
@@ -210,11 +189,11 @@ public class Toernooi_Toevoegen extends JDialog {
         inschrijfdatumJaar.setBounds(230,425,75,25);
         panel.add(inschrijfdatumJaar);
 
-        voegToeBtn = new JButton("voeg gast toe");
+        JButton voegToeBtn = new JButton("voeg gast toe");
         voegToeBtn.setBounds(100,475,120,30);
         panel.add(voegToeBtn);
 
-        terugBtn1 = new JButton("terug");
+        JButton terugBtn1 = new JButton("terug");
         terugBtn1.setBounds(250,475,100,30);
         panel.add(terugBtn1);
 
@@ -229,12 +208,11 @@ public class Toernooi_Toevoegen extends JDialog {
                 datumDay = datumDag.getSelectedIndex() + 1;
                 datumMonth = datumMaand.getSelectedIndex() + 1;
                 datumYear = datumJaar.getSelectedIndex() + 2019;
-                //datum = LocalDate.of(datumDay,datumMonth,datumYear);
-                String datumString = datumYear + "-" + datumMonth + "-" + datumDay;
+                datum = datumYear + "-" + datumMonth + "-" + datumDay;
 
                 locatie = locaties.getItemAt(locaties.getSelectedIndex());
-                String begintijdStr = begintijdUur.getValue().toString() + ":" + begintijdMin.getValue().toString();
-                String eindtijdStr = eindtijdUur.getValue().toString() + ":" + eindtijdMin.getValue().toString();
+                 begintijd = begintijdUur.getValue().toString() + ":" + begintijdMin.getValue().toString();
+                 eindtijd = eindtijdUur.getValue().toString() + ":" + eindtijdMin.getValue().toString();
                 beschrijving = beschrijvingTxt.getText();
                 conditie = conditieTxt.getText();
                 max_inschrijvingen = Integer.parseInt(max_inschrijvingenSp.getValue().toString());
@@ -242,24 +220,23 @@ public class Toernooi_Toevoegen extends JDialog {
                 inschrijfdatumDay = inschrijfdatumDag.getSelectedIndex() + 1;
                 inschrijfdatumMonth = inschrijfdatumMaand.getSelectedIndex() + 1;
                 inschrijfdatumYear = inschrijfdatumJaar.getSelectedIndex() + 2019;
-                String inschrijfdatumString = inschrijfdatumYear + "-" + inschrijfdatumMonth + "-" + inschrijfdatumDay;
+                inschrijfdatum = inschrijfdatumYear + "-" + inschrijfdatumMonth + "-" + inschrijfdatumDay;
 
                 if (isValidInput()) {
                     try { //adds toernooi to database
                         PreparedStatement ps = ConnectionManager.getConnection().prepareStatement("INSERT INTO toernooi (datum, locatie, begintijd, eindtijd, beschrijving, conditie, max_inschrijvingen, inleggeld, inschrijfdatum) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);");
-                        ps.setString(1, datumString);
+                        ps.setString(1, datum);
                         ps.setString(2, locatie);
-                        ps.setString(3, begintijdStr);
-                        ps.setString(4, eindtijdStr);
+                        ps.setString(3, begintijd);
+                        ps.setString(4, eindtijd);
                         ps.setString(5, beschrijving);
                         ps.setString(6, conditie);
                         ps.setInt(7, max_inschrijvingen);
                         ps.setInt(8, inleggeld);
-                        ps.setString(9, inschrijfdatumString);
+                        ps.setString(9, inschrijfdatum);
                         ps.executeUpdate();
                         System.out.println("Toernooi is added to the database");
                         dispose();
-                        new Toernooien();
                     } catch (Exception ex) {
                         System.out.println("\nSomething went wrong");
                         ex.printStackTrace();
