@@ -10,7 +10,7 @@ class ConnectionManager {
     public static Connection getConnection() throws SQLException {
         if (connection == null)
             connection = DriverManager.getConnection("jdbc:mysql://meru.hhs.nl/18064728?useLegacyDatetimeCode=false&serverTimezone=Europe/Amsterdam",
-                    "leerlingnr", "password");
+                    "18064728", "aeph3vo3aV");
         return connection;
     }
     private static Connection connection;
