@@ -6,7 +6,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 /**
- * Medewerker krijgt een overzicht van alle gasten en heeft de mogelijkheid om ze aan te passen of te verwijderen
+ * Medewerker krijgt een overzicht van alle gasten en heeft de mogelijkheid om ze te bewerken of te verwijderen
  */
 
 public class Gast_Controleren2 extends JDialog {
@@ -27,7 +27,6 @@ public class Gast_Controleren2 extends JDialog {
     private String woonplaats;
     private String telefoonnummer;
     private String email;
-    private Gast gast;
 
     private DefaultListModel<Gast> model;
     private JList<Gast> gasten;
@@ -40,7 +39,7 @@ public class Gast_Controleren2 extends JDialog {
         d.setVisible(true);
     }
 
-    Gast_Controleren2() {
+    Gast_Controleren2()  {
 
         JPanel panel = new JPanel();
         panel.setLayout(null);
@@ -66,7 +65,7 @@ public class Gast_Controleren2 extends JDialog {
                 telefoonnummer = rs.getString("telefoonnummer");
                 email = rs.getString("email");
 
-                gast = new Gast(ID, naam, geslacht, geboortedatum, adres, postcode, woonplaats, telefoonnummer, email);
+                Gast gast = new Gast(ID, naam, geslacht, geboortedatum, adres, postcode, woonplaats, telefoonnummer, email);
                 model.addElement(gast);
             }
 
@@ -109,7 +108,6 @@ public class Gast_Controleren2 extends JDialog {
         @Override
         public void actionPerformed(ActionEvent e) {
             dispose();
-            new Gasten();
         }
     }
 
@@ -142,7 +140,6 @@ public class Gast_Controleren2 extends JDialog {
                     class Gast_Bewerken1 extends Gast_Toevoegen {
 
                         private Gast_Bewerken1() {
-                            super();
                             naamTxt.setText(list.getSelectedValue().getNaam());
                             if (list.getSelectedValue().getGeslacht().equals("man")) {
                                 man.setSelected(true);
@@ -171,12 +168,52 @@ public class Gast_Controleren2 extends JDialog {
                             ListenerManager.deleteActionListeners(voegToeBtn);
                             ActionListener terug = new Terug();
                             terugBtn1.addActionListener(terug);
-                            ActionListener wijzigen = new Wijzigen();
-                            voegToeBtn.addActionListener(wijzigen);
+                            ActionListener test = new Test();
+                            voegToeBtn.addActionListener(test);
                         }
 
                         class Terug implements ActionListener {
                             public void actionPerformed(ActionEvent e) {
+                                dispose();
+                            }
+                        }
+
+                        class Test implements ActionListener {
+                            public void actionPerformed(ActionEvent e) {
+                                naam =  naamTxt.getText();
+                                if (man.isSelected()) {
+                                    geslacht = "man";
+                                } else {
+                                    geslacht = "vrouw";
+                                }
+                                day = dayList.getSelectedIndex() + 1;
+                                month = monthList.getSelectedIndex() + 1;
+                                year = yearList.getSelectedIndex() + 1900;
+                                gbdString = year + "-" + month + "-" + day;
+                                adres = adresTxt.getText();
+                                postcode = postcodeTxt.getText();
+                                woonplaats = woonplaatsTxt.getText();
+                                telefoonnummer = telefoonnummerTxt.getText();
+                                email = emailTxt.getText();
+
+                                try {
+                                    PreparedStatement ps = ConnectionManager.getConnection().prepareStatement("UPDATE gast SET naam = ?, geslacht = ?, geboortedatum = ?, adres = ?, postcode = ?, woonplaats = ?, telefoonnummer = ?, email = ?  WHERE ID = ?;");
+                                    ps.setString(1, naam);
+                                    ps.setString(2, geslacht);
+                                    ps.setString(3, gbdString);
+                                    ps.setString(4, adres);
+                                    ps.setString(5, postcode);
+                                    ps.setString(6, woonplaats);
+                                    ps.setString(7, telefoonnummer);
+                                    ps.setString(8, email);
+                                    ps.setInt(9,ID);
+                                    ps.executeUpdate();
+                                    System.out.println("gast is bijgewerkt");
+                                } catch (Exception e1) {
+                                    System.out.println("something went wrong");
+                                    e1.printStackTrace();
+                                }
+                                JOptionPane.showMessageDialog(null,"gast is gewijzigd");
                                 dispose();
                             }
                         }
@@ -189,28 +226,6 @@ public class Gast_Controleren2 extends JDialog {
                     d.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
                 }
             } catch (Exception e1) {
-                e1.printStackTrace();
-            }
-        }
-    }
-
-    class Wijzigen implements ActionListener {
-        public void actionPerformed(ActionEvent e) {
-            try {
-                PreparedStatement ps = ConnectionManager.getConnection().prepareStatement("UPDATE gast SET naam = ?, geslacht = ?, geboortedatum = ?, adres = ?, postcode = ?, woonplaats = ?, telefoonnummer = ?, email = ?  WHERE ID = ?;");
-                ps.setString(1, naam);
-                ps.setString(2, geslacht);
-                ps.setString(3, gbdString);
-                ps.setString(4, adres);
-                ps.setString(5, postcode);
-                ps.setString(6, woonplaats);
-                ps.setString(7, telefoonnummer);
-                ps.setString(8, email);
-                ps.setInt(9,ID);
-                ps.executeUpdate();
-                System.out.println("gast is bijgewerkt");
-            } catch (Exception e1) {
-                System.out.println("something went wrong");
                 e1.printStackTrace();
             }
         }
@@ -240,4 +255,3 @@ public class Gast_Controleren2 extends JDialog {
         }
     }
 }
-
