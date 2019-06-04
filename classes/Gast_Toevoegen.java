@@ -14,12 +14,7 @@ import java.time.Period;
  * Medewerken vult de gegevens van het formulier in en drukt op 'voeg gast toe' om de gast toe te voegen aan de database
  * of drukt op 'terug' om terug te gaan naar 'Gasten'
  */
-public class Gast_Toevoegen extends JDialog {
-
-    //JDIALOG
-    private static final int width = 500;
-    private static final int height = 500;
-    private static final String title = "Gast Toevoegen";
+class Gast_Toevoegen extends JDialog {
 
     //ATTRIBUTES
     private String naam;
@@ -30,9 +25,9 @@ public class Gast_Toevoegen extends JDialog {
     private ArrayList<Integer> years;
     private ArrayList<Integer> months;
     private ArrayList<Integer> days;
-    private int day;
-    private int month;
-    private int year;
+    protected int day;
+    protected int month;
+    protected int year;
 
     private String adres;
     private String postcode;
@@ -54,15 +49,6 @@ public class Gast_Toevoegen extends JDialog {
     protected JFormattedTextField emailTxt;
     protected JButton terugBtn1;
     protected JButton voegToeBtn;
-
-    public static void main(String[] args) {
-
-        JDialog d = new Gast_Toevoegen();
-        d.setSize(width, height);
-        d.setTitle(title);
-        d.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        d.setVisible(true);
-    }
 
      Gast_Toevoegen() {
 
@@ -206,8 +192,19 @@ public class Gast_Toevoegen extends JDialog {
                         ps.setString(7, telefoonnummer);
                         ps.setString(8, email);
                         ps.executeUpdate();
-                        System.out.println("Guest is added to the database");
-                        dispose();
+                        JOptionPane.showMessageDialog(null, "gast is toegeveogd aan de database");
+
+                        naamTxt.setText("");
+                        dayList.setSelectedIndex(0);
+                        monthList.setSelectedIndex(0);
+                        yearList.setSelectedIndex(119);
+                        bg.clearSelection();
+                        adresTxt.setText("");
+                        postcodeTxt.setText("");
+                        woonplaatsTxt.setText("");
+                        telefoonnummerTxt.setText("");
+                        emailTxt.setText("");
+
                     }
 
                 } catch (underageException ex1) {
@@ -223,7 +220,6 @@ public class Gast_Toevoegen extends JDialog {
         class Terug implements ActionListener {
             public void actionPerformed(ActionEvent e) {
                 dispose();
-                new Gasten();
             }
         }
 
