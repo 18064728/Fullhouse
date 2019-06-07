@@ -98,7 +98,12 @@ public class BekendePokerSpelerToevoegen extends JDialog {
 
     //geeft true als alle velden juist zijn ingevuld
     private boolean isValidInput() {
-        //todo code toevoegen zodat de method checkt of de alle input juist is
-        return true;
+        if (naam.matches(".*\\d.*")) {
+            System.out.println("naam mag geen nummers bevatten");
+            naamBekendTxt.setText("naam mag geen nummers bevatten");
+            return false;
+        } else {
+            return true;
+        }
     }
 }
