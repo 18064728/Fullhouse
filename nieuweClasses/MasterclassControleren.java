@@ -150,6 +150,8 @@ public class MasterclassControleren extends JDialog {
                         class Wijzig implements ActionListener {
                             public void actionPerformed(ActionEvent e) {
                                 ID = list.getSelectedValue().getID();
+                                begintijd = begintijdUur.getValue() + ":" + begintijdMin.getValue();
+                                eindtijd = eindtijdUur.getValue() + ":" + eindtijdMin.getValue();
 
                                 try {
                                     PreparedStatement ps = ConnectionManager.getConnection().prepareStatement("UPDATE masterclass SET datum = ?, locatie = ?, begintijd = ?, eindtijd = ?, kosten = ?, min_rating = ?, bekende_pokerspeler = ? WHERE ID = ?;");
