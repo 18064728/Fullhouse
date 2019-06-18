@@ -42,6 +42,10 @@ class MasterclassInschrijvingControleren extends JDialog {
 
     MasterclassInschrijvingControleren() {
 
+        this.setSize(750, 500);
+        this.setVisible(true);
+        this.setTitle("Masterclass inschrijving controleren");
+
         addComponents(); //zorgt ervoor dat alle components op het scherm komen
         addList(); //zorgt ervoor dat de list gevuld word
 
@@ -121,19 +125,20 @@ class MasterclassInschrijvingControleren extends JDialog {
             @Override
             public void actionPerformed(ActionEvent e) {
                 JDialog d = new JDialog();
-                d.setSize(550, 450);
+                d.setSize(750, 500);
                 d.setTitle("Ratings controleren");
                 d.setVisible(true);
 
                 JPanel panel = new JPanel();
+                panel.setLayout(null);
                 d.add(panel);
 
                 model1 = new DefaultListModel<>();
                 ratings = new JList<>(model1);
                 panel.add(ratings);
-                JScrollPane sp = new JScrollPane(ratings);
-                sp.setBounds(105, 25, 650, 400);
-                panel.add(sp);
+                JScrollPane sg = new JScrollPane(ratings);
+                sg.setBounds(105, 25, 500, 400);
+                panel.add(sg);
 
                 //int rating = list.getSelectedValue().getRating();
                 try {
@@ -145,18 +150,14 @@ class MasterclassInschrijvingControleren extends JDialog {
                         while (rs.next()) {
                             rating = rs.getInt("rating");
                             model1.removeAllElements();
-                            addRating();
                         }
+                        addRating();
                     }
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
             }
         }
-
-        this.setSize(750, 500);
-        this.setVisible(true);
-        this.setTitle("Masterclass inschrijving controleren");
 
         ActionListener wijzig = new Wijzig(inschrijvingen);
         ActionListener verwijder = new Verwijder(inschrijvingen);
@@ -233,16 +234,16 @@ class MasterclassInschrijvingControleren extends JDialog {
         try {
             ResultSet rs = ConnectionManager.getConnection().createStatement().executeQuery("select * from masterclass_inschrijving join gast on gast = ID where rating >= " + ratingInv);
             while (rs.next()) {
-                ID = rs.getInt(1);
-                naam = rs.getString(2);
-                geslacht = rs.getString(3);
-                geboortedatum = rs.getString(4);
-                adres = rs.getString(5);
-                postcode = rs.getString(6);
-                woonplaats = rs.getString(7);
-                telefoonnummer = rs.getString(8);
-                email = rs.getString(9);
-                rating = rs.getInt(10);
+                ID = rs.getInt("ID");
+                naam = rs.getString("naam");
+                geslacht = rs.getString("geslacht");
+                geboortedatum = rs.getString("geboortedatum");
+                adres = rs.getString("adres");
+                postcode = rs.getString("postcode");
+                woonplaats = rs.getString("woonplaats");
+                telefoonnummer = rs.getString("telefoonnummer");
+                email = rs.getString("email");
+                rating = rs.getInt("rating");
 
                 Gast rd = new Gast(ID, naam, geslacht, geboortedatum, adres, postcode, woonplaats, telefoonnummer, email, rating);
                 model1.addElement(rd);
