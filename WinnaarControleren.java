@@ -140,16 +140,15 @@ class WinnaarControleren extends JDialog {
                         gast = rs.getInt("gast");
                         naam = rs.getString("naam");
                         ronde = rs.getInt("ronde");
+                        tafel = rs.getInt("tafel");
                         plaats = rs.getInt("plaats");
                         bedragTweede = rs.getDouble("aantal");
                     }
 
                     if (gast == 0) {
                         JOptionPane.showMessageDialog(null, "dit toernooi heeft nog geen winnaar");
-                        System.out.println("test1: " + gast + " " + naam + " " + ronde + " " + plaats);
                     } else if (ronde == 3) {
-                        JOptionPane.showMessageDialog(null, naam + " (ID: " + gast + ")" + " is op 1e plaats beïndigd en heeft €" + bedragTweede + " gewonnen");
-                        System.out.println("test2: " + gast + " " + naam + " " + ronde + " " + plaats);
+                        JOptionPane.showMessageDialog(null, naam + " (ID: " + gast + ")" + " is op 1e plaats beïndigd van ronde " + ronde + " aan tafel " + tafel + " en heeft €" + bedragTweede + " gewonnen");
                         gast = 0;
                     }
                 }
@@ -179,16 +178,15 @@ class WinnaarControleren extends JDialog {
                         gast = rs.getInt("gast");
                         naam = rs.getString("naam");
                         ronde = rs.getInt("ronde");
+                        tafel = rs.getInt("tafel");
                         plaats = rs.getInt("plaats");
                         bedragTweede = rs.getDouble("aantal");
                     }
 
                     if (gast == 0) {
                         JOptionPane.showMessageDialog(null, "dit toernooi heeft nog geen winnaar");
-                        System.out.println("test1: " + gast + " " + naam + " " + ronde + " " + plaats);
                     } else if (ronde == 3) {
-                        JOptionPane.showMessageDialog(null, naam + " (ID: " + gast + ")" + " is op 2e plaats beïndigd en heeft €" + bedragTweede + " gewonnen");
-                        System.out.println("test2: " + gast + " " + naam + " " + ronde + " " + plaats);
+                        JOptionPane.showMessageDialog(null, naam + " (ID: " + gast + ")" + " is op 2e plaats beïndigd van ronde " + ronde + " aan tafel " + tafel + " en heeft €" + bedragTweede + " gewonnen");
                         gast = 0;
                     }
                 }
