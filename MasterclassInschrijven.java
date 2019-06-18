@@ -5,7 +5,11 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class MasterclassInschrijven extends JDialog {
+/**
+ * Medewerker krijgt een scherm te zien waarin een Gast in een Masterclass ingeschreven kan worden
+ */
+
+class MasterclassInschrijven extends JDialog {
 
     private static final int width = 300;
     private static final int height = 350;
@@ -45,14 +49,14 @@ public class MasterclassInschrijven extends JDialog {
         panel.setLayout(null);
 
         panel.add(Box.createRigidArea(new Dimension(5, 10)));
-        gastLbl = new JLabel("gast:");
+        gastLbl = new JLabel("Gast:");
         gastLbl.setBounds(5,0,50,15);
         panel.add(gastLbl);
 
         gekozenGast = new JLabel();
         gekozenGast.setBounds(60,0,250,15);
         panel.add(gekozenGast);
-        JButton kiesGast = new JButton(new AbstractAction("kies gast") {
+        JButton kiesGast = new JButton(new AbstractAction("Kies gast") {
             @Override
             public void actionPerformed(ActionEvent e) {
                 JDialog d = new MasterclassInschrijven.GastKiezen();
@@ -63,15 +67,14 @@ public class MasterclassInschrijven extends JDialog {
         kiesGast.setBounds(5,20, 100,25);
         panel.add(kiesGast);
 
-        masterclassLbl = new JLabel("masterclass:");
+        masterclassLbl = new JLabel("Masterclass:");
         masterclassLbl.setBounds(5,50,150,25);
         panel.add(masterclassLbl);
-
 
         gekozenMasterclass = new JLabel();
         gekozenMasterclass.setBounds(60, 50, 200,25);
         panel.add(gekozenMasterclass);
-        JButton kiesMasterclass = new JButton(new AbstractAction("kies Masterclass") {
+        JButton kiesMasterclass = new JButton(new AbstractAction("Kies Masterclass") {
             @Override
             public void actionPerformed(ActionEvent e) {
                 JDialog d = new MasterclassInschrijven.MasterclassKiezen();
@@ -82,7 +85,7 @@ public class MasterclassInschrijven extends JDialog {
         kiesMasterclass.setBounds(5,80,125,25);
         panel.add(kiesMasterclass);
 
-        heeftBetaaldLbl = new JLabel("heeft betaald:");
+        heeftBetaaldLbl = new JLabel("Heeft betaald:");
         heeftBetaaldLbl.setBounds(5,125,100,15);
         panel.add(heeftBetaaldLbl);
 
@@ -98,7 +101,7 @@ public class MasterclassInschrijven extends JDialog {
         bg.add(betaaldJa);
         bg.add(betaaldNee);
 
-        heeftRatingLbl = new JLabel("heeft rating:");
+        heeftRatingLbl = new JLabel("Heeft rating:");
         heeftRatingLbl.setBounds(5,175,100,15);
         panel.add(heeftRatingLbl);
 
@@ -118,7 +121,7 @@ public class MasterclassInschrijven extends JDialog {
         geenKeuze.setBounds(210,125,100,15);
         panel.add(geenKeuze);
 
-        inschrijven = new JButton(new AbstractAction("schrijf gast in") {
+        inschrijven = new JButton(new AbstractAction("Schrijf gast in") {
             @Override
             public void actionPerformed(ActionEvent e) {
                 int gastID = 0;
@@ -128,14 +131,14 @@ public class MasterclassInschrijven extends JDialog {
                     gastID = Integer.parseInt(gastParts[0]);
                 } catch (Exception ex1) {
                     gekozenGast.setForeground(Color.RED);
-                    gekozenGast.setText("nog geen gast gekozen");
+                    gekozenGast.setText("Nog geen gast gekozen");
                 }
 
                 try {
                     masterclassID = Integer.parseInt(masterclassParts[0]);
                 } catch (Exception e2) {
                     gekozenMasterclass.setForeground(Color.RED);
-                    gekozenMasterclass.setText("nog geen masterclass gekozen");
+                    gekozenMasterclass.setText("Nog geen masterclass gekozen");
                 }
 
                 if (betaaldJa.isSelected()) {
@@ -159,7 +162,7 @@ public class MasterclassInschrijven extends JDialog {
                 }
 
                 if (gastID == 0 || masterclassID == 0 || heeftBetaald.equals("null") || heeftRating.equals("null")) {
-                    JOptionPane.showMessageDialog(null, "vul alle velden in");
+                    JOptionPane.showMessageDialog(null, "Vul alle velden in");
                 } else {
                     try {
                         //voegt inschrijving toe aan database
@@ -168,7 +171,7 @@ public class MasterclassInschrijven extends JDialog {
                         ps.setInt(2, masterclassID);
                         ps.setString(3, heeftBetaald);
                         ps.executeUpdate();
-                        JOptionPane.showMessageDialog(null,"gast is ingeschreven");
+                        JOptionPane.showMessageDialog(null,"Gast is ingeschreven");
 
                         //maakt alle velden leeg zodat je nog een gast kan inschrijven
                         gekozenGast.setText("");
@@ -177,7 +180,6 @@ public class MasterclassInschrijven extends JDialog {
                         bg.clearSelection();
                         bg1.clearSelection();
                     } catch (SQLException ex) {
-                        System.out.println("er ging iets mis");
                         ex.printStackTrace();
                     }
                 }
@@ -186,7 +188,7 @@ public class MasterclassInschrijven extends JDialog {
         inschrijven.setBounds(5,275,125,25);
         panel.add(inschrijven);
 
-        terug = new JButton(new AbstractAction("terug") {
+        terug = new JButton(new AbstractAction("Terug") {
             @Override
             public void actionPerformed(ActionEvent e) {
                 dispose();
@@ -208,11 +210,12 @@ public class MasterclassInschrijven extends JDialog {
         private String woonplaats;
         private String telefoonnummer;
         private String email;
+        private int rating;
 
         private JButton kies;
         private JButton terug;
 
-        public GastKiezen() {
+        GastKiezen() {
             this.setTitle("Gast kiezen");
             JPanel gastenPanel = new JPanel();
             gastenPanel.setLayout(null);
@@ -236,15 +239,16 @@ public class MasterclassInschrijven extends JDialog {
                     woonplaats = rs.getString("woonplaats");
                     telefoonnummer = rs.getString("telefoonnummer");
                     email = rs.getString("email");
+                    rating = rs.getInt("rating");
 
-                    Gast gast = new Gast(ID, naam, geslacht, geboortedatum, adres, postcode, woonplaats, telefoonnummer, email);
+                    Gast gast = new Gast(ID, naam, geslacht, geboortedatum, adres, postcode, woonplaats, telefoonnummer, email, rating);
                     model.addElement(gast);
                 }
                 kies = new JButton(new AbstractAction("kies") {
                     @Override
                     public void actionPerformed(ActionEvent e) {
                         if (gasten.isSelectionEmpty()) {
-                            JOptionPane.showMessageDialog(null, "kies een gast");
+                            JOptionPane.showMessageDialog(null, "Kies een gast");
                         } else {
                             gastParts = gasten.getSelectedValue().toString().split(" ");
                             StringBuilder naam = new StringBuilder();
@@ -264,7 +268,7 @@ public class MasterclassInschrijven extends JDialog {
                 gastenPanel.add(kies);
 
 
-                terug = new JButton(new AbstractAction("terug") {
+                terug = new JButton(new AbstractAction("Terug") {
                     @Override
                     public void actionPerformed(ActionEvent e) {
                         dispose();
@@ -274,7 +278,6 @@ public class MasterclassInschrijven extends JDialog {
                 gastenPanel.add(terug);
 
             } catch (SQLException e) {
-                System.out.println("something went wrong");
                 e.printStackTrace();
             }
 
@@ -343,7 +346,6 @@ public class MasterclassInschrijven extends JDialog {
                 kies.setBounds(0, 325, 75, 25);
                 masterclassPanel.add(kies);
 
-
                 terug = new JButton(new AbstractAction("terug") {
                     @Override
                     public void actionPerformed(ActionEvent e) {
@@ -354,9 +356,8 @@ public class MasterclassInschrijven extends JDialog {
                 masterclassPanel.add(terug);
 
             } catch (SQLException e) {
-                System.out.println("something went wrong");
                 e.printStackTrace();
             }
         }
     }
-    }
+}

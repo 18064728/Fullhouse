@@ -16,12 +16,23 @@ class MasterclassInschrijvingControleren extends JDialog {
     int gastID;
     int masterclassID;
     String heeftBetaald;
+    int ID;
+    String naam;
+    String geslacht;
+    String geboortedatum;
+    String adres;
+    String postcode;
+    String woonplaats;
+    String telefoonnummer;
+    String email;
     int rating;
     int ratingInv = 0;
 
     //COMPONENTS
     private DefaultListModel<MasterclassInschrijving> model;
+    private DefaultListModel<Gast> model1;
     private JList<MasterclassInschrijving> inschrijvingen;
+    private JList<Gast> ratings;
 
     private JButton wijzigen;
     private JButton verwijderen;
@@ -56,15 +67,15 @@ class MasterclassInschrijvingControleren extends JDialog {
                             ps.executeUpdate();
                             model.removeAllElements();
                             addList();
-                            JOptionPane.showMessageDialog(null,"Betaling is gewijzigd");
+                            JOptionPane.showMessageDialog(null, "Betaling is gewijzigd");
 
                         } else if (heeftBetaald.equals("ja")) { //wijzigt heeftBetaald naar nee
                             PreparedStatement ps = ConnectionManager.getConnection().prepareStatement("UPDATE masterclass_inschrijving set heeft_betaald = 'nee' where inschrijvingnr = ?;");
-                            ps.setInt(1,inschrijvingnr);
+                            ps.setInt(1, inschrijvingnr);
                             ps.executeUpdate();
                             model.removeAllElements();
                             addList();
-                            JOptionPane.showMessageDialog(null,"Betaling is gewijzigd");
+                            JOptionPane.showMessageDialog(null, "Betaling is gewijzigd");
                         }
                     }
                 } catch (Exception ex) {
@@ -79,6 +90,7 @@ class MasterclassInschrijvingControleren extends JDialog {
             private Verwijder(JList<MasterclassInschrijving> list) {
                 this.list = list;
             }
+
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
@@ -91,7 +103,7 @@ class MasterclassInschrijvingControleren extends JDialog {
                         ps.executeUpdate();
                         model.removeAllElements();
                         addList();
-                        JOptionPane.showMessageDialog(null,"Inschrijving is verwijderd");
+                        JOptionPane.showMessageDialog(null, "Inschrijving is verwijderd");
                     }
                 } catch (Exception ex) {
                     ex.printStackTrace();
@@ -99,20 +111,30 @@ class MasterclassInschrijvingControleren extends JDialog {
             }
         }
 
-        class Rating implements ActionListener{
-            private JList<MasterclassInschrijving> list;
+        class Rating implements ActionListener {
+            private JList<Gast> list;
 
-            private Rating(JList<MasterclassInschrijving> list) {
+            private Rating(JList<Gast> list) {
                 this.list = list;
             }
+
             @Override
-            public void actionPerformed(ActionEvent e){
+            public void actionPerformed(ActionEvent e) {
                 JDialog d = new JDialog();
-                d.setSize(750,500);
+                d.setSize(550, 450);
                 d.setTitle("Ratings controleren");
                 d.setVisible(true);
 
                 JPanel panel = new JPanel();
+                d.add(panel);
+
+                model1 = new DefaultListModel<>();
+                ratings = new JList<>(model1);
+                panel.add(ratings);
+                JScrollPane sp = new JScrollPane(ratings);
+                sp.setBounds(105, 25, 650, 400);
+                panel.add(sp);
+
                 //int rating = list.getSelectedValue().getRating();
                 try {
                     if (ratingTF.getText().equals("")) {
@@ -120,8 +142,10 @@ class MasterclassInschrijvingControleren extends JDialog {
                     } else {
                         ratingInv = Integer.parseInt(ratingTF.getText());
                         ResultSet rs = ConnectionManager.getConnection().createStatement().executeQuery("select * from masterclass_inschrijving join gast on gast = ID where rating >= " + ratingInv);
-                        while(rs.next()){
+                        while (rs.next()) {
                             rating = rs.getInt("rating");
+                            model1.removeAllElements();
+                            addRating();
                         }
                     }
                 } catch (Exception ex) {
@@ -130,13 +154,13 @@ class MasterclassInschrijvingControleren extends JDialog {
             }
         }
 
-        this.setSize(750,500);
+        this.setSize(750, 500);
         this.setVisible(true);
         this.setTitle("Masterclass inschrijving controleren");
 
         ActionListener wijzig = new Wijzig(inschrijvingen);
         ActionListener verwijder = new Verwijder(inschrijvingen);
-        ActionListener rating = new Rating(inschrijvingen);
+        ActionListener rating = new Rating(ratings);
         ratingBtn.addActionListener(rating);
         wijzigen.addActionListener(wijzig);
         verwijderen.addActionListener(verwijder);
@@ -176,7 +200,8 @@ class MasterclassInschrijvingControleren extends JDialog {
             ratingBtn.setBounds(0, 180, 105, 30);
             panel.add(ratingBtn);
 
-            ratingTF = new TextField() {};
+            ratingTF = new TextField() {
+            };
             ratingTF.setBounds(0, 230, 105, 30);
             panel.add(ratingTF);
 
@@ -198,6 +223,29 @@ class MasterclassInschrijvingControleren extends JDialog {
 
                 MasterclassInschrijving ti = new MasterclassInschrijving(inschrijvingnr, gastID, masterclassID, heeftBetaald);
                 model.addElement(ti);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void addRating() {
+        try {
+            ResultSet rs = ConnectionManager.getConnection().createStatement().executeQuery("select * from masterclass_inschrijving join gast on gast = ID where rating >= " + ratingInv);
+            while (rs.next()) {
+                ID = rs.getInt(1);
+                naam = rs.getString(2);
+                geslacht = rs.getString(3);
+                geboortedatum = rs.getString(4);
+                adres = rs.getString(5);
+                postcode = rs.getString(6);
+                woonplaats = rs.getString(7);
+                telefoonnummer = rs.getString(8);
+                email = rs.getString(9);
+                rating = rs.getInt(10);
+
+                Gast rd = new Gast(ID, naam, geslacht, geboortedatum, adres, postcode, woonplaats, telefoonnummer, email, rating);
+                model1.addElement(rd);
             }
         } catch (Exception e) {
             e.printStackTrace();
