@@ -102,27 +102,32 @@ class MasterclassInschrijvingControleren extends JDialog {
         class Rating implements ActionListener{
             private JList<MasterclassInschrijving> list;
 
-            private Rating(JList<MasterclassInschrijving> list) {this.list = list;}
+            private Rating(JList<MasterclassInschrijving> list) {
+                this.list = list;
+            }
             @Override
             public void actionPerformed(ActionEvent e){
-                int rating = list.getSelectedValue().getRating();
+                JDialog d = new JDialog();
+                d.setSize(750,500);
+                d.setTitle("Ratings controleren");
+                d.setVisible(true);
 
+                JPanel panel = new JPanel();
+                //int rating = list.getSelectedValue().getRating();
                 try {
                     if (ratingTF.getText().equals("")) {
                         JOptionPane.showMessageDialog(null, "Voer een rating in");
                     } else {
                         ratingInv = Integer.parseInt(ratingTF.getText());
                         ResultSet rs = ConnectionManager.getConnection().createStatement().executeQuery("select * from masterclass_inschrijving join gast on gast = ID where rating >= " + ratingInv);
-                        rs.getInt("rating");
-
-
-
+                        while(rs.next()){
+                            rating = rs.getInt("rating");
+                        }
                     }
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
             }
-
         }
 
         this.setSize(750,500);
@@ -131,6 +136,8 @@ class MasterclassInschrijvingControleren extends JDialog {
 
         ActionListener wijzig = new Wijzig(inschrijvingen);
         ActionListener verwijder = new Verwijder(inschrijvingen);
+        ActionListener rating = new Rating(inschrijvingen);
+        ratingBtn.addActionListener(rating);
         wijzigen.addActionListener(wijzig);
         verwijderen.addActionListener(verwijder);
     }
@@ -167,7 +174,6 @@ class MasterclassInschrijvingControleren extends JDialog {
 
             ratingBtn = new JButton("Rating knop");
             ratingBtn.setBounds(0, 180, 105, 30);
-            ActionListener Rating = new Rating(inschrijvingen);
             panel.add(ratingBtn);
 
             ratingTF = new TextField() {};
