@@ -3,7 +3,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.ResultSet;
 
-public class WinnaarControleren extends JDialog {
+/**
+ * Medewerker krijgt een scherm te zien waarin een Gast als winnaar ingeschreven kan worden
+ */
+
+class WinnaarControleren extends JDialog {
 
     //JDialog
     private static final int width = 750;
@@ -21,8 +25,17 @@ public class WinnaarControleren extends JDialog {
     private int maxInschrijvingen;
     private int inleggeld;
     private String inschrijfdatum;
+    private double bedragEerste;
+    private double bedragTweede;
 
-    private JButton winnaarKijkenBtn;
+    int gast;
+    String naam;
+    private int tafel;
+    private int ronde;
+    int plaats;
+
+    private JButton EerstePlaatsKijkenBtn;
+    private JButton TweedePlaatsKijkenBtn;
     private JButton terugBtn;
 
     private JPanel panel;
@@ -30,16 +43,11 @@ public class WinnaarControleren extends JDialog {
     private DefaultListModel<Toernooi> model;
     private JList<Toernooi> toernooien;
 
-    private DefaultListModel<Winnaar> model1;
-    private JList<Winnaar> winnaars;
-
-    WinnaarControleren(){
+    WinnaarControleren() {
         panel = new JPanel();
         panel.setLayout(null);
 
-        try{
-            System.out.println("connected to database");
-
+        try {
             model = new DefaultListModel<>();
             toernooien = new JList<>(model);
             panel.add(toernooien);
@@ -52,9 +60,7 @@ public class WinnaarControleren extends JDialog {
             if (model.isEmpty()) {
                 JOptionPane.showMessageDialog(null, "Nog geen toernooien toegevoegd, voeg toernooien toe via 'Toernooi toevoegen'");
             }
-        }
-        catch (Exception e){
-            System.out.println("er ging iets mis1");
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -65,23 +71,29 @@ public class WinnaarControleren extends JDialog {
         this.add(panel);
 
         terugBtn = new JButton("Terug");
-        terugBtn.setBounds(0,0,100,30);
+        terugBtn.setBounds(0, 0, 100, 30);
         ActionListener terug = new Terug();
         panel.add(terugBtn);
 
-        winnaarKijkenBtn = new JButton("Winnaars");
-        winnaarKijkenBtn.setBounds(0, 55, 100, 30);
-        ActionListener winnaarsKijken = new WinnaarsKijken(toernooien);
-        panel.add(winnaarKijkenBtn);
+        EerstePlaatsKijkenBtn = new JButton("Eerste plaats");
+        EerstePlaatsKijkenBtn.setBounds(0, 55, 100, 30);
+        ActionListener EerstePlaatsKijken = new EerstePlaatsKijken(toernooien);
+        panel.add(EerstePlaatsKijkenBtn);
+
+        TweedePlaatsKijkenBtn = new JButton("Tweede plaats");
+        TweedePlaatsKijkenBtn.setBounds(0, 80, 100, 30);
+        ActionListener TweedePlaatsKijken = new TweedePlaatsKijken(toernooien);
+        panel.add(TweedePlaatsKijkenBtn);
 
         terugBtn.addActionListener(terug);
-        winnaarKijkenBtn.addActionListener(winnaarsKijken);
+        EerstePlaatsKijkenBtn.addActionListener(EerstePlaatsKijken);
+        TweedePlaatsKijkenBtn.addActionListener(TweedePlaatsKijken);
     }
 
-    void addList(){
-        try{
+    private void addList() {
+        try {
             ResultSet rs = ConnectionManager.getConnection().createStatement().executeQuery("SELECT * FROM toernooi");
-            while(rs.next()){
+            while (rs.next()) {
                 ID = rs.getInt("ID");
                 datum = rs.getString("datum");
                 locatie = rs.getString("locatie");
@@ -96,38 +108,91 @@ public class WinnaarControleren extends JDialog {
                 Toernooi toernooi = new Toernooi(ID, datum, locatie, begintijd, eindtijd, beschrijving, conditie, maxInschrijvingen, inleggeld, inschrijfdatum);
                 model.addElement(toernooi);
             }
-        }
-        catch (Exception e){
-            System.out.println("er ging iets mis2");
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    class Terug implements ActionListener{
+    class Terug implements ActionListener {
         @Override
-        public void actionPerformed(ActionEvent e){
+        public void actionPerformed(ActionEvent e) {
             dispose();
         }
     }
 
-    class WinnaarsKijken implements ActionListener{
+    class EerstePlaatsKijken implements ActionListener {
         private JList<Toernooi> list;
 
-        private WinnaarsKijken(JList<Toernooi> list){
+        private EerstePlaatsKijken(JList<Toernooi> list) {
             this.list = list;
         }
 
         @Override
-        public void actionPerformed(ActionEvent e){
-            try{
-                if(list.isSelectionEmpty()){
-                    JOptionPane.showMessageDialog(null, "Kies een toernooi om de winnaars te zien");
-                }
-                else{
+        public void actionPerformed(ActionEvent e) {
+            int ID = list.getSelectedValue().getID();
 
+            try {
+                if (list.isSelectionEmpty()) {
+                    JOptionPane.showMessageDialog(null, "Kies een toernooi om de tweede plaats van te zien");
+                } else {
+                    ResultSet rs = ConnectionManager.getConnection().createStatement().executeQuery("select *, (inleggeld*(select count(*) from toernooi_inschrijving where heeft_betaald = 'ja' and toernooi = " + ID + ")*0.45) as aantal from winnaar w join gast g on gast = ID join toernooi t on toernooi = t.ID where plaats = 1 and w.toernooi = " + ID + ";");
+                    while (rs.next()) {
+                        gast = rs.getInt("gast");
+                        naam = rs.getString("naam");
+                        ronde = rs.getInt("ronde");
+                        plaats = rs.getInt("plaats");
+                        bedragTweede = rs.getDouble("aantal");
+                    }
+
+                    if (gast == 0) {
+                        JOptionPane.showMessageDialog(null, "dit toernooi heeft nog geen winnaar");
+                        System.out.println("test1: " + gast + " " + naam + " " + ronde + " " + plaats);
+                    } else if (ronde == 3) {
+                        JOptionPane.showMessageDialog(null, naam + " (ID: " + gast + ")" + " is op 1e plaats beïndigd en heeft €" + bedragTweede + " gewonnen");
+                        System.out.println("test2: " + gast + " " + naam + " " + ronde + " " + plaats);
+                        gast = 0;
+                    }
                 }
+            } catch (Exception e1) {
+                e1.printStackTrace();
             }
-            catch(Exception e1){
+        }
+    }
+
+    class TweedePlaatsKijken implements ActionListener {
+        private JList<Toernooi> list;
+
+        private TweedePlaatsKijken(JList<Toernooi> list) {
+            this.list = list;
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            int ID = list.getSelectedValue().getID();
+
+            try {
+                if (list.isSelectionEmpty()) {
+                    JOptionPane.showMessageDialog(null, "Kies een toernooi om de tweede plaats van te zien");
+                } else {
+                    ResultSet rs = ConnectionManager.getConnection().createStatement().executeQuery("select *, (inleggeld*(select count(*) from toernooi_inschrijving where heeft_betaald = 'ja' and toernooi = " + ID + ")*0.25) as aantal from winnaar w join gast g on gast = ID join toernooi t on toernooi = t.ID where plaats = 2 and w.toernooi = " + ID + ";");
+                    while (rs.next()) {
+                        gast = rs.getInt("gast");
+                        naam = rs.getString("naam");
+                        ronde = rs.getInt("ronde");
+                        plaats = rs.getInt("plaats");
+                        bedragTweede = rs.getDouble("aantal");
+                    }
+
+                    if (gast == 0) {
+                        JOptionPane.showMessageDialog(null, "dit toernooi heeft nog geen winnaar");
+                        System.out.println("test1: " + gast + " " + naam + " " + ronde + " " + plaats);
+                    } else if (ronde == 3) {
+                        JOptionPane.showMessageDialog(null, naam + " (ID: " + gast + ")" + " is op 2e plaats beïndigd en heeft €" + bedragTweede + " gewonnen");
+                        System.out.println("test2: " + gast + " " + naam + " " + ronde + " " + plaats);
+                        gast = 0;
+                    }
+                }
+            } catch (Exception e1) {
                 e1.printStackTrace();
             }
         }
