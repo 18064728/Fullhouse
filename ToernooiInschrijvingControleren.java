@@ -15,16 +15,22 @@ class ToernooiInschrijvingControleren extends JDialog {
     private int gastID;
     private int toernooiID;
     private String heeftBetaald;
-    private int tafel;
+    //private int tafel;
     private String[] toernooiParts;
-    private boolean isClicked;
+    private String filter;
 
     //COMPONENTS
     private DefaultListModel<ToernooiInschrijving> model;
     private JList<ToernooiInschrijving> inschrijvingen;
 
-    private JButton kiesToernooi;
+    private JLabel filterLbl;
+    private JLabel gekozenFilterLbl;
+    private JLabel gekozenFilterLbl2;
     private JButton nietBetaaldBtn;
+    private JButton welBetaaldBtn;
+    private JButton resetBtn;
+
+    private JButton kiesToernooi;
     private JButton wijzigen;
     private JButton verwijderen;
     private JButton terug;
@@ -44,7 +50,10 @@ class ToernooiInschrijvingControleren extends JDialog {
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
-                    if (list.isSelectionEmpty()) {
+                    if (model.isEmpty()) {
+                        JOptionPane.showMessageDialog(null, "kies eerst een toernooi");
+                    } else {
+                    if ( list.isSelectionEmpty()) {
                         JOptionPane.showMessageDialog(null, "Kies een gast om zijn betaling te wijzigen");
                     } else {
                         inschrijvingnr = list.getSelectedValue().inschrijvingnr;
@@ -54,19 +63,18 @@ class ToernooiInschrijvingControleren extends JDialog {
                             PreparedStatement ps = ConnectionManager.getConnection().prepareStatement("UPDATE toernooi_inschrijving SET heeft_betaald = 'ja' where inschrijvingsnr = ?;");
                             ps.setInt(1, inschrijvingnr);
                             ps.executeUpdate();
-                            model.removeAllElements();
                             addList();
-                            JOptionPane.showMessageDialog(null,"Betaling is gewijzigd");
+                            JOptionPane.showMessageDialog(null, "Betaling is gewijzigd");
 
                         } else if (heeftBetaald.equals("ja")) { //wijzigt heeftBetaald naar nee
                             PreparedStatement ps = ConnectionManager.getConnection().prepareStatement("UPDATE toernooi_inschrijving set heeft_betaald = 'nee' where inschrijvingsnr = ?;");
-                            ps.setInt(1,inschrijvingnr);
+                            ps.setInt(1, inschrijvingnr);
                             ps.executeUpdate();
-                            model.removeAllElements();
                             addList();
-                            JOptionPane.showMessageDialog(null,"Betaling is gewijzigd");
+                            JOptionPane.showMessageDialog(null, "Betaling is gewijzigd");
                         }
                     }
+                }
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
@@ -89,7 +97,6 @@ class ToernooiInschrijvingControleren extends JDialog {
                         PreparedStatement ps = ConnectionManager.getConnection().prepareStatement("DELETE FROM toernooi_inschrijving WHERE inschrijvingsnr = ?");
                         ps.setInt(1, inschrijvingnr);
                         ps.executeUpdate();
-                        model.removeAllElements();
                         addList();
                         JOptionPane.showMessageDialog(null,"Inschrijving is verwijderd");
                     }
@@ -99,7 +106,7 @@ class ToernooiInschrijvingControleren extends JDialog {
             }
         }
 
-        this.setSize(750,500);
+        this.setSize(730,475);
         this.setVisible(true);
         this.setTitle("Toernooi inschrijving controleren");
 
@@ -112,6 +119,7 @@ class ToernooiInschrijvingControleren extends JDialog {
     private void addComponents() {
         JPanel panel = new JPanel();
         panel.setLayout(null);
+        filter = "geen";
 
         try {
             model = new DefaultListModel<>();
@@ -121,43 +129,69 @@ class ToernooiInschrijvingControleren extends JDialog {
             sp.setBounds(105, 25, 500, 400);
             panel.add(sp);
 
-            kiesToernooi = new JButton(new AbstractAction("<html>kies toernooi</html>") {
+            kiesToernooi = new JButton(new AbstractAction("<html>Kies toernooi</html>") {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    model.removeAllElements();
                     JDialog d = new ToernooiKiezen();
                     d.setSize(600,400);
                     d.setVisible(true);
                 }
             });
-            kiesToernooi.setBounds(0,5,105,50);
+            kiesToernooi.setBounds(0,5,105,30);
             panel.add(kiesToernooi);
 
-            nietBetaaldBtn = new JButton(new AbstractAction("niet betaald") {
+            filterLbl = new JLabel("filter op:");
+            filterLbl.setBounds(625,25,75,15);
+            panel.add(filterLbl);
+
+            gekozenFilterLbl = new JLabel("<html><center>gekozen filter is:</center></html>");
+            gekozenFilterLbl.setBounds(625,200,125,15);
+            panel.add(gekozenFilterLbl);
+
+            gekozenFilterLbl2 = new JLabel();
+            gekozenFilterLbl2.setBounds(625,215,125,15);
+            panel.add(gekozenFilterLbl2);
+
+            nietBetaaldBtn = new JButton(new AbstractAction("Niet betaald") {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    model.removeAllElements();
+                    filter = "niet";
                     addList();
-
-                    if (nietBetaaldBtn.getText().equals("niet betaald")) {
-                        nietBetaaldBtn.setText("geen filter");
-                        isClicked = true;
-                    } else if (nietBetaaldBtn.getText().equals("geen filter")) {
-                        nietBetaaldBtn.setText("niet betaald");
-                        isClicked = false;
-                    }
+                    gekozenFilterLbl2.setText("<html><b>niet betaald</b></html>");
                 }
             });
-            nietBetaaldBtn.setBounds(0,80,105,30);
+            nietBetaaldBtn.setBounds(605,60,105,30);
             panel.add(nietBetaaldBtn);
+
+            welBetaaldBtn = new JButton(new AbstractAction("wel betaald") {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    filter = "wel";
+                    addList();
+                    gekozenFilterLbl2.setText("<html><b>wel betaald</b></html>");
+                }
+            });
+            welBetaaldBtn.setBounds(605,100,105,30);
+            panel.add(welBetaaldBtn);
+
+            resetBtn = new JButton(new AbstractAction("geen filter") {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    filter = "geen";
+                    addList();
+                    gekozenFilterLbl2.setText("<html><b>geen filter</b></html>");
+                }
+            });
+            resetBtn.setBounds(605,140,105,30);
+            panel.add(resetBtn);
 
             wijzigen = new JButton("<html>Betaling wijzigen</html>");
             wijzigen.setToolTipText("Klik op een gast en deze knop om zijn betaling te wijzigen");
-            wijzigen.setBounds(0, 150, 105, 50);
+            wijzigen.setBounds(0, 55, 105, 30);
             panel.add(wijzigen);
 
             verwijderen = new JButton("Verwijderen");
-            verwijderen.setBounds(0, 200, 105, 30);
+            verwijderen.setBounds(0, 110, 105, 30);
             panel.add(verwijderen);
 
             terug = new JButton(new AbstractAction("Terug") {
@@ -166,7 +200,7 @@ class ToernooiInschrijvingControleren extends JDialog {
                     dispose();
                 }
             });
-            terug.setBounds(0, 250, 105, 30);
+            terug.setBounds(0, 160, 105, 30);
             panel.add(terug);
 
         } catch (Exception e) {
@@ -176,17 +210,20 @@ class ToernooiInschrijvingControleren extends JDialog {
     }
 
     private void addList() {
+        model.removeAllElements();
         try {
-             ResultSet rs1 = ConnectionManager.getConnection().createStatement().executeQuery("SELECT * FROM toernooi_inschrijving where toernooi = " + toernooiID + ";");
-             ResultSet rs2 = ConnectionManager.getConnection().createStatement().executeQuery("SELECT * from toernooi_inschrijving where toernooi = " + toernooiID + " and heeft_betaald = 'nee';");
-             ResultSet rs;
+            ResultSet rs1 = ConnectionManager.getConnection().createStatement().executeQuery("SELECT * FROM toernooi_inschrijving where toernooi = " + toernooiID + ";");
+            ResultSet rs2 = ConnectionManager.getConnection().createStatement().executeQuery("SELECT * from toernooi_inschrijving where toernooi = " + toernooiID + " and heeft_betaald = 'nee';");
+            ResultSet rs3 = ConnectionManager.getConnection().createStatement().executeQuery("SELECT * from toernooi_inschrijving where toernooi = " + toernooiID + " and heeft_betaald = 'ja';");
+            ResultSet rs;
 
-             if (isClicked) {
+            if (filter.equals("wel")) {
+                rs = rs3;
+            } else if (filter.equals("niet")) {
                 rs = rs2;
-
-             } else {
-                 rs = rs1;
-             }
+            } else {
+                rs = rs1;
+            }
 
             while (rs.next()) {
                 inschrijvingnr = rs.getInt(1);
@@ -202,17 +239,6 @@ class ToernooiInschrijvingControleren extends JDialog {
     }
 
     class ToernooiKiezen extends JDialog {
-
-        private int ID;
-        private String datum;
-        private String locatie;
-        private String begintijd;
-        private  String eindtijd;
-        private String beschrijving;
-        private String conditie;
-        private int maxInschrijvingen;
-        private int inleggeld;
-        private String inschrijfdatum;
 
         ToernooiKiezen() {
             this.setTitle("Toernooi kiezen");
@@ -231,33 +257,32 @@ class ToernooiInschrijvingControleren extends JDialog {
             try {
                 ResultSet rs = ConnectionManager.getConnection().createStatement().executeQuery("SELECT * FROM toernooi");
                 while (rs.next()) {
-                    ID = rs.getInt("ID");
-                    datum = rs.getString("datum");
-                    locatie = rs.getString("locatie");
-                    begintijd = rs.getString("begintijd");
-                    eindtijd = rs.getString("eindtijd");
-                    beschrijving = rs.getString("beschrijving");
-                    conditie = rs.getString("conditie");
-                    maxInschrijvingen = rs.getInt("max_inschrijvingen");
-                    inleggeld = rs.getInt("inleggeld");
-                    inschrijfdatum = rs.getString("inschrijfdatum");
+                    int ID = rs.getInt("ID");
+                    String datum = rs.getString("datum");
+                    String locatie = rs.getString("locatie");
+                    String begintijd = rs.getString("begintijd");
+                    String eindtijd = rs.getString("eindtijd");
+                    String beschrijving = rs.getString("beschrijving");
+                    String conditie = rs.getString("conditie");
+                    int maxInschrijvingen = rs.getInt("max_inschrijvingen");
+                    int inleggeld = rs.getInt("inleggeld");
+                    String inschrijfdatum = rs.getString("inschrijfdatum");
 
                     Toernooi toernooi = new Toernooi(ID, datum, locatie, begintijd, eindtijd, beschrijving, conditie, maxInschrijvingen, inleggeld, inschrijfdatum);
                     model.addElement(toernooi);
                 }
 
-                JButton kies = new JButton(new AbstractAction("kies") {
+                JButton kies = new JButton(new AbstractAction("Kies") {
                     @Override
                     public void actionPerformed(ActionEvent e) {
+
                         if (toernooien.isSelectionEmpty()) {
-                            JOptionPane.showMessageDialog(null,"kies een toernooi");
+                            JOptionPane.showMessageDialog(null,"Kies een toernooi");
                         } else {
 
                             toernooiParts = toernooien.getSelectedValue().toString().split(" ");
-                            toernooiID = Integer.parseInt(toernooiParts[0]);
+                            toernooiID = Integer.parseInt(toernooiParts[1]);
 
-                           // gekozenToernooi.setForeground(Color.BLACK);
-                           // gekozenToernooi.setText("ID: " + toernooiParts[0] + " datum: " + toernooiParts[1] + ", " + toernooi);;
                             addList();
                             dispose();
                         }
@@ -266,7 +291,7 @@ class ToernooiInschrijvingControleren extends JDialog {
                 kies.setBounds(0,325,75,25);
                 toernooiPanel.add(kies);
 
-                JButton terug = new JButton(new AbstractAction("terug") {
+                JButton terug = new JButton(new AbstractAction("Terug") {
                     @Override
                     public void actionPerformed(ActionEvent e) {
                         dispose();
@@ -280,10 +305,4 @@ class ToernooiInschrijvingControleren extends JDialog {
             }
         }
     }
-    public static void main(String[] args) {
-        JDialog d = new ToernooiInschrijvingControleren();
-        d.setSize(650,500);
-        d.setVisible(true);
-    }
 }
-
