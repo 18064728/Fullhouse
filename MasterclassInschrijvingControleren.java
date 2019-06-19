@@ -27,6 +27,8 @@ class MasterclassInschrijvingControleren extends JDialog {
     String email;
     int rating;
     int ratingInv = 0;
+    private String[] masterclassParts;
+    private String filter;
 
     //COMPONENTS
     private DefaultListModel<MasterclassInschrijving> model;
@@ -34,6 +36,14 @@ class MasterclassInschrijvingControleren extends JDialog {
     private JList<MasterclassInschrijving> inschrijvingen;
     private JList<Gast> ratings;
 
+    private JLabel filterLbl;
+    private JLabel gekozenFilterLbl;
+    private JLabel gekozenFilterLbl2;
+    private JButton nietBetaaldBtn;
+    private JButton welBetaaldBtn;
+    private JButton resetBtn;
+
+    private JButton kiesMasterclass;
     private JButton wijzigen;
     private JButton verwijderen;
     private JButton terug;
@@ -117,7 +127,6 @@ class MasterclassInschrijvingControleren extends JDialog {
 
         class Rating implements ActionListener {
             private JList<Gast> list;
-
             private Rating(JList<Gast> list) {
                 this.list = list;
             }
@@ -170,6 +179,7 @@ class MasterclassInschrijvingControleren extends JDialog {
     private void addComponents() {
         JPanel panel = new JPanel();
         panel.setLayout(null);
+        filter = "geen";
 
         try {
             model = new DefaultListModel<>();
@@ -179,13 +189,69 @@ class MasterclassInschrijvingControleren extends JDialog {
             sp.setBounds(105, 25, 500, 400);
             panel.add(sp);
 
+            filterLbl = new JLabel("filter op:");
+            filterLbl.setBounds(625,25,75,15);
+            panel.add(filterLbl);
+
+            gekozenFilterLbl = new JLabel("<html><center>gekozen filter is:</center></html>");
+            gekozenFilterLbl.setBounds(625,200,125,15);
+            panel.add(gekozenFilterLbl);
+
+            gekozenFilterLbl2 = new JLabel();
+            gekozenFilterLbl2.setBounds(625,215,125,15);
+            panel.add(gekozenFilterLbl2);
+
+            nietBetaaldBtn = new JButton(new AbstractAction("Niet betaald") {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    filter = "niet";
+                    addList();
+                    gekozenFilterLbl2.setText("<html><b>niet betaald</b></html>");
+                }
+            });
+            nietBetaaldBtn.setBounds(605,60,105,30);
+            panel.add(nietBetaaldBtn);
+
+            welBetaaldBtn = new JButton(new AbstractAction("wel betaald") {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    filter = "wel";
+                    addList();
+                    gekozenFilterLbl2.setText("<html><b>wel betaald</b></html>");
+                }
+            });
+            welBetaaldBtn.setBounds(605,100,105,30);
+            panel.add(welBetaaldBtn);
+
+            resetBtn = new JButton(new AbstractAction("geen filter") {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    filter = "geen";
+                    addList();
+                    gekozenFilterLbl2.setText("<html><b>geen filter</b></html>");
+                }
+            });
+            resetBtn.setBounds(605,140,105,30);
+            panel.add(resetBtn);
+
+            kiesMasterclass = new JButton(new AbstractAction("<html>kies masterclass</html>") {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    JDialog d = new MasterclassKiezen();
+                    d.setSize(625,400);
+                    d.setVisible(true);
+                }
+            });
+            kiesMasterclass.setBounds(0,5,105,50);
+            panel.add(kiesMasterclass);
+
             wijzigen = new JButton("<html>Betaling wijzigen</html>");
             wijzigen.setToolTipText("Klik op een gast en deze knop om zijn betaling te wijzigen");
-            wijzigen.setBounds(0, 5, 105, 50);
+            wijzigen.setBounds(0, 75, 105, 50);
             panel.add(wijzigen);
 
             verwijderen = new JButton("Verwijderen");
-            verwijderen.setBounds(0, 80, 105, 30);
+            verwijderen.setBounds(0, 145, 105, 30);
             panel.add(verwijderen);
 
             terug = new JButton(new AbstractAction("Terug") {
@@ -194,16 +260,16 @@ class MasterclassInschrijvingControleren extends JDialog {
                     dispose();
                 }
             });
-            terug.setBounds(0, 130, 105, 30);
+            terug.setBounds(0, 195, 105, 30);
             panel.add(terug);
 
             ratingBtn = new JButton("Rating knop");
-            ratingBtn.setBounds(0, 180, 105, 30);
+            ratingBtn.setBounds(0, 245, 105, 30);
             panel.add(ratingBtn);
 
             ratingTF = new TextField() {
             };
-            ratingTF.setBounds(0, 230, 105, 30);
+            ratingTF.setBounds(0, 295, 105, 30);
             panel.add(ratingTF);
 
 
@@ -214,8 +280,22 @@ class MasterclassInschrijvingControleren extends JDialog {
     }
 
     private void addList() {
+        model.removeAllElements();
         try {
-            ResultSet rs = ConnectionManager.getConnection().createStatement().executeQuery("SELECT * FROM masterclass_inschrijving");
+
+            ResultSet rs1 = ConnectionManager.getConnection().createStatement().executeQuery("SELECT * FROM masterclass_inschrijving where masterclass = " + masterclassID + ";");
+            ResultSet rs2 = ConnectionManager.getConnection().createStatement().executeQuery("SELECT * from masterclass_inschrijving where masterclass = " + masterclassID + " and heeft_betaald = 'nee';");
+            ResultSet rs3 = ConnectionManager.getConnection().createStatement().executeQuery("SELECT * from masterclass_inschrijving where masterclass = " + masterclassID + " and heeft_betaald = 'ja';");
+            ResultSet rs;
+
+            if (filter.equals("wel")) {
+                rs = rs3;
+            } else if (filter.equals("niet")) {
+                rs = rs2;
+            } else {
+                rs = rs1;
+            }
+
             while (rs.next()) {
                 inschrijvingnr = rs.getInt(1);
                 gastID = rs.getInt(2);
@@ -250,6 +330,72 @@ class MasterclassInschrijvingControleren extends JDialog {
             }
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    class MasterclassKiezen extends JDialog {
+
+        MasterclassKiezen() {
+            this.setTitle("Masterclass kiezen");
+            JPanel toernooiPanel = new JPanel();
+            toernooiPanel.setLayout(null);
+            DefaultListModel<Object> model = new DefaultListModel<>();
+            JList<Object> toernooien = new JList<>(model);
+            toernooiPanel.add(toernooien);
+            JScrollPane sp = new JScrollPane(toernooien);
+            sp.setBounds(0,0,550,300);
+
+            toernooiPanel.add(sp);
+
+            this.add(toernooiPanel);
+
+            try {
+                ResultSet rs = ConnectionManager.getConnection().createStatement().executeQuery("SELECT * FROM masterclass");
+                while (rs.next()) {
+                    int ID = rs.getInt("ID");
+                    String datum = rs.getString("datum");
+                    String locatie = rs.getString("locatie");
+                    String begintijd = rs.getString("begintijd");
+                    String eindtijd = rs.getString("eindtijd");
+                    int kosten = rs.getInt("kosten");
+                    int minRating = rs.getInt("min_rating");
+                    String bekendePokerspeler = rs.getString("bekende_pokerspeler");
+
+                    Masterclass masterclass = new Masterclass(ID, datum, locatie, begintijd, eindtijd, kosten, minRating, bekendePokerspeler);
+                    model.addElement(masterclass);
+                }
+
+                JButton kies = new JButton(new AbstractAction("Kies") {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+
+                        if (toernooien.isSelectionEmpty()) {
+                            JOptionPane.showMessageDialog(null,"Kies een masterclass");
+                        } else {
+
+                            masterclassParts = toernooien.getSelectedValue().toString().split(" ");
+                            masterclassID = Integer.parseInt(masterclassParts[1]);
+
+                            addList();
+                            dispose();
+                        }
+                    }
+                });
+                kies.setBounds(0,325,75,25);
+                toernooiPanel.add(kies);
+
+                JButton terug = new JButton(new AbstractAction("Terug") {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        dispose();
+                    }
+                });
+                terug.setBounds(100,325,75,25);
+                toernooiPanel.add(terug);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 }
