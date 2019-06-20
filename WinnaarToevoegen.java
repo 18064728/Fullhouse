@@ -218,14 +218,27 @@ class WinnaarToevoegen extends JDialog {
                     eindPlaats = Integer.parseInt(plaatsSp.getValue().toString());
 
                     try {
-                        PreparedStatement ps = ConnectionManager.getConnection().prepareStatement("INSERT INTO winnaar (gast, toernooi, tafel, ronde, plaats) VALUES (?,?,?,?,?) ;");
-                        ps.setInt(1,winnaarID);
-                        ps.setInt(2,toernooiID);
-                        ps.setInt(3,aantalTafels);
-                        ps.setInt(4,aantalRondes);
-                        ps.setInt(5, eindPlaats);
-                        ps.executeUpdate();
-                        JOptionPane.showMessageDialog(null, "winnaar is toegevoegd");
+                        int i = 0;
+                        ResultSet rs = ConnectionManager.getConnection().createStatement().executeQuery("select count(*) from winnaar where gast = " + gastID + " and toernooi = " + toernooiID + " ;");
+                        while (rs.next()) {
+                          i = rs.getInt(1);
+                            System.out.println(i);
+                        }
+
+                        if (i == 0) {
+
+                            PreparedStatement ps2 = ConnectionManager.getConnection().prepareStatement("INSERT INTO winnaar (gast, toernooi, tafel, ronde, plaats) VALUES (?,?,?,?,?) ;");
+                            ps2.setInt(1, winnaarID);
+                            ps2.setInt(2, toernooiID);
+                            ps2.setInt(3, aantalTafels);
+                            ps2.setInt(4, aantalRondes);
+                            ps2.setInt(5, eindPlaats);
+                            ps2.executeUpdate();
+                            JOptionPane.showMessageDialog(null, "winnaar is toegevoegd");
+                        } else {
+                            JOptionPane.showMessageDialog(null,"deze gast doet al mee aan dit toernooi");
+                        }
+                        i = 0;
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }
