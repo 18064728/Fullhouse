@@ -33,9 +33,12 @@ class WinnaarToevoegen extends JDialog {
     int eindPlaats;
 
     private JButton toevoegenBtn;
-    private JButton bewerkenBtn;
     private JButton verwijderBtn;
     private JButton terugBtn;
+
+    private JSpinner rondeSp;
+    private JSpinner tafelSp;
+    private JSpinner plaatsSp;
 
     JLabel winnaar;
     JLabel gekozenWinnaar;
@@ -54,17 +57,15 @@ class WinnaarToevoegen extends JDialog {
         panel = new JPanel();
         panel.setLayout(null);
 
-        try{
-            model = new DefaultListModel<>();
-            winnaars = new JList<>(model);
-            panel.add(winnaars);
-            JScrollPane sp = new JScrollPane(winnaars);
-            sp.setBounds(125,25,500,400);
-            panel.add(sp);
-        }
-        catch (Exception e){
-            e.printStackTrace();
-        }
+        model = new DefaultListModel<>();
+        winnaars = new JList<>(model);
+        panel.add(winnaars);
+        JScrollPane sp = new JScrollPane(winnaars);
+        sp.setBounds(125,25,500,400);
+        panel.add(sp);
+
+        addList();
+
 
         this.setSize(width, height);
         this.setTitle(title);
@@ -74,28 +75,23 @@ class WinnaarToevoegen extends JDialog {
 
         toevoegenBtn = new JButton("Toevoegen");
         terugBtn = new JButton("Terug");
-        bewerkenBtn = new JButton("Bewerken");
         verwijderBtn = new JButton("Verwijderen");
 
         toevoegenBtn.setBounds(0,0,100,30);
         terugBtn.setBounds(0,55,100,30);
-        bewerkenBtn.setBounds(0,110,100,30);
-        verwijderBtn.setBounds(0,165,100,30);
+        verwijderBtn.setBounds(0,110,100,30);
 
         panel.add(toevoegenBtn);
         panel.add(terugBtn);
-        panel.add(bewerkenBtn);
         panel.add(verwijderBtn);
 
         ActionListener toevoegen = new Toevoegen();
         ActionListener terug = new Terug();
-        //ActionListener bewerk = new Bewerk();
-        //ActionListener verwijder = new Verwijder();
+        ActionListener verwijder = new Verwijder(winnaars);
 
         toevoegenBtn.addActionListener(toevoegen);
         terugBtn.addActionListener(terug);
-        //bewerkenBtn.addActionListener(bewerk);
-        //verwijderBtn.addActionListener(verwijder);
+        verwijderBtn.addActionListener(verwijder);
 
         this.add(panel);
     }
@@ -112,10 +108,6 @@ class WinnaarToevoegen extends JDialog {
         private static final int width = 300;
         private static final int height = 350;
         private static final String title = "Winnaar toevoegen";
-
-        private JSpinner ronde;
-        private JSpinner tafel;
-        private JSpinner plaats;
 
         JButton kiesWinnaar;
         JButton kiesToernooi;
@@ -176,28 +168,28 @@ class WinnaarToevoegen extends JDialog {
             rondeLbl.setBounds(5,125,100,15);
             panel.add(rondeLbl);
 
-            SpinnerNumberModel rondes = new SpinnerNumberModel(0,0,2,1);
-            ronde = new JSpinner(rondes);
-            ronde.setBounds(110,125, 50,15);
-            panel.add(ronde);
+            SpinnerNumberModel rondes = new SpinnerNumberModel(0,0,3,1);
+            rondeSp = new JSpinner(rondes);
+            rondeSp.setBounds(110,125, 50,15);
+            panel.add(rondeSp);
 
             tafelLbl = new JLabel("Tafel nummer:");
             tafelLbl.setBounds(5, 150, 100, 15);
             panel.add(tafelLbl);
 
             SpinnerNumberModel tafels = new SpinnerNumberModel(0,0,10,1);
-            tafel = new JSpinner(tafels);
-            tafel.setBounds(110, 150, 50, 15);
-            panel.add(tafel);
+            tafelSp = new JSpinner(tafels);
+            tafelSp.setBounds(110, 150, 50, 15);
+            panel.add(tafelSp);
 
             plaatsNr = new JLabel("Plaats nummer:");
             plaatsNr.setBounds(5, 175, 100, 15);
             panel.add(plaatsNr);
 
             SpinnerNumberModel plaatsen = new SpinnerNumberModel(0,0,3,1);
-            plaats = new JSpinner(plaatsen);
-            plaats.setBounds(110, 175, 50, 15);
-            panel.add(plaats);
+            plaatsSp = new JSpinner(plaatsen);
+            plaatsSp.setBounds(110, 175, 50, 15);
+            panel.add(plaatsSp);
 
             toevoegenWinnaar = new JButton(new AbstractAction("Voeg winnaar toe") {
                 @Override
@@ -206,7 +198,7 @@ class WinnaarToevoegen extends JDialog {
                     int toernooiID = 0;
 
                     try{
-                        winnaarID = Integer.parseInt(gastParts[0]);
+                        winnaarID = Integer.parseInt(gastParts[1]);
                     }
                     catch (Exception ex1){
                         gekozenWinnaar.setForeground(Color.red);
@@ -214,19 +206,19 @@ class WinnaarToevoegen extends JDialog {
                     }
 
                     try{
-                        toernooiID = Integer.parseInt(toernooiParts[0]);
+                        toernooiID = Integer.parseInt(toernooiParts[1]);
                     }
                     catch (Exception e2){
                         gekozenToernooi.setForeground(Color.red);
                         gekozenToernooi.setText("Nog geen toernooi gekozen");
                     }
 
-                    aantalRondes = Integer.parseInt(ronde.getValue().toString());
-                    aantalTafels = Integer.parseInt(tafel.getValue().toString());
-                    eindPlaats = Integer.parseInt(plaats.getValue().toString());
+                    aantalRondes = Integer.parseInt(rondeSp.getValue().toString());
+                    aantalTafels = Integer.parseInt(tafelSp.getValue().toString());
+                    eindPlaats = Integer.parseInt(plaatsSp.getValue().toString());
 
                     try {
-                        PreparedStatement ps = ConnectionManager.getConnection().prepareStatement("INSERT INTO winnaar (gast, toernooi, tafel, ronde, plaats) VALUES (?,?,?,?,?);");
+                        PreparedStatement ps = ConnectionManager.getConnection().prepareStatement("INSERT INTO winnaar (gast, toernooi, tafel, ronde, plaats) VALUES (?,?,?,?,?) ;");
                         ps.setInt(1,winnaarID);
                         ps.setInt(2,toernooiID);
                         ps.setInt(3,aantalTafels);
@@ -237,6 +229,14 @@ class WinnaarToevoegen extends JDialog {
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }
+
+                    try {
+                        PreparedStatement ps2 = ConnectionManager.getConnection().prepareStatement("UPDATE gast SET rating = rating + 25 WHERE ID = " + winnaarID);
+                        ps2.executeUpdate();
+                    } catch (Exception ex2){
+                        ex2.printStackTrace();
+                    }
+                    addList();
                 }
             });
             toevoegenWinnaar.setBounds(5,275,125,25);
@@ -270,7 +270,7 @@ class WinnaarToevoegen extends JDialog {
         private JButton kies;
         private JButton terug;
 
-        public WinnaarKiezen() {
+        WinnaarKiezen() {
             this.setTitle("Gast kiezen");
             JPanel gastenPanel = new JPanel();
             gastenPanel.setLayout(null);
@@ -283,7 +283,7 @@ class WinnaarToevoegen extends JDialog {
             this.add(gastenPanel);
 
             try {
-                ResultSet rs = ConnectionManager.getConnection().createStatement().executeQuery("SELECT * FROM gast");
+                ResultSet rs = ConnectionManager.getConnection().createStatement().executeQuery("SELECT * FROM gast WHERE ID IN (SELECT gast FROM toernooi_inschrijving WHERE gast.ID = toernooi_inschrijving.gast)");
                 while (rs.next()) {
                     ID = rs.getInt("ID");
                     naam = rs.getString("naam");
@@ -314,7 +314,7 @@ class WinnaarToevoegen extends JDialog {
                                 naam.append(gastParts[i]).append(" ");
                             }
                             gekozenWinnaar.setForeground(Color.BLACK);
-                            gekozenWinnaar.setText("ID: " + gastParts[0] + "   naam: " + naam);
+                            gekozenWinnaar.setText("ID: " + gastParts[1] + " naam: " + gastParts[3]);
                             dispose();
                         }
                     }
@@ -397,7 +397,7 @@ class WinnaarToevoegen extends JDialog {
                                 toernooi.append(toernooiParts[i]).append(" ");
                             }
                             gekozenToernooi.setForeground(Color.BLACK);
-                            gekozenToernooi.setText("ID: " + toernooiParts[0] + " datum: " + toernooiParts[1] + ", " + toernooi);
+                            gekozenToernooi.setText("ID: " + toernooiParts[1] + " datum: " + toernooiParts[3]);
                             dispose();
                         }
                     }
@@ -405,8 +405,7 @@ class WinnaarToevoegen extends JDialog {
                 kies.setBounds(0,325,75,25);
                 toernooiPanel.add(kies);
 
-
-                JButton terug = new JButton(new AbstractAction("terug") {
+                JButton terug = new JButton(new AbstractAction("Terug") {
                     @Override
                     public void actionPerformed(ActionEvent e) {
                         dispose();
@@ -418,6 +417,54 @@ class WinnaarToevoegen extends JDialog {
             } catch (SQLException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    class Verwijder implements ActionListener{
+        private JList<Winnaar> list;
+
+        private Verwijder(JList<Winnaar> list){
+            this.list = list;
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e){
+            try{
+                if(list.isSelectionEmpty()){
+                    JOptionPane.showMessageDialog(null, "Kies een winnaar om te verwijderen");
+                }
+                else{
+                    int ID = list.getSelectedValue().getGastID();
+                    PreparedStatement ps = ConnectionManager.getConnection().prepareStatement("DELETE FROM winnaar WHERE gast = ?");
+                    ps.setInt(1, ID);
+                    ps.executeUpdate();
+                    model.removeElement(list.getSelectedValue());
+                    JOptionPane.showMessageDialog(null, "Winnaar is verwijderd");
+                }
+            }
+            catch (SQLException e1){
+                e1.printStackTrace();
+            }
+        }
+    }
+
+    private void addList(){
+        model.removeAllElements();
+        try{
+            ResultSet rs = ConnectionManager.getConnection().createStatement().executeQuery("SELECT * FROM winnaar");
+            while(rs.next()){
+                winaarNr = rs.getInt("winnaarnr");
+                gastID = rs.getInt("gast");
+                toernooiID = rs.getInt("toernooi");
+                tafel = rs.getInt("tafel");
+                ronde = rs.getInt("ronde");
+                plaats = rs.getInt("plaats");
+                Winnaar winnaar = new Winnaar(winaarNr, gastID, toernooiID, tafel, ronde, plaats);
+                model.addElement(winnaar);
+            }
+        }
+        catch(Exception e){
+            e.printStackTrace();
         }
     }
 }
