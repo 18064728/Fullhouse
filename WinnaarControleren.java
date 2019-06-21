@@ -71,17 +71,17 @@ class WinnaarControleren extends JDialog {
         this.add(panel);
 
         terugBtn = new JButton("Terug");
-        terugBtn.setBounds(0, 0, 100, 30);
+        terugBtn.setBounds(0, 0, 110, 30);
         ActionListener terug = new Terug();
         panel.add(terugBtn);
 
         EerstePlaatsKijkenBtn = new JButton("Eerste plaats");
-        EerstePlaatsKijkenBtn.setBounds(0, 55, 100, 30);
+        EerstePlaatsKijkenBtn.setBounds(0, 55, 110, 30);
         ActionListener EerstePlaatsKijken = new EerstePlaatsKijken(toernooien);
         panel.add(EerstePlaatsKijkenBtn);
 
         TweedePlaatsKijkenBtn = new JButton("Tweede plaats");
-        TweedePlaatsKijkenBtn.setBounds(0, 80, 100, 30);
+        TweedePlaatsKijkenBtn.setBounds(0, 110, 110, 30);
         ActionListener TweedePlaatsKijken = new TweedePlaatsKijken(toernooien);
         panel.add(TweedePlaatsKijkenBtn);
 
@@ -129,12 +129,11 @@ class WinnaarControleren extends JDialog {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            int ID = list.getSelectedValue().getID();
-
             try {
                 if (list.isSelectionEmpty()) {
-                    JOptionPane.showMessageDialog(null, "Kies een toernooi om de tweede plaats van te zien");
+                    JOptionPane.showMessageDialog(null, "Kies een toernooi om de eerste plaats van te zien");
                 } else {
+                    int ID = list.getSelectedValue().getID();
                     ResultSet rs = ConnectionManager.getConnection().createStatement().executeQuery("select *, (inleggeld*(select count(*) from toernooi_inschrijving where heeft_betaald = 'ja' and toernooi = " + ID + ")*0.45) as aantal from winnaar w join gast g on gast = ID join toernooi t on toernooi = t.ID where plaats = 1 and w.toernooi = " + ID + ";");
                     while (rs.next()) {
                         gast = rs.getInt("gast");
@@ -146,8 +145,8 @@ class WinnaarControleren extends JDialog {
                     }
 
                     if (gast == 0) {
-                        JOptionPane.showMessageDialog(null, "dit toernooi heeft nog geen winnaar");
-                    } else if (ronde == 3) {
+                        JOptionPane.showMessageDialog(null, "dit toernooi heeft nog geen eerste plaats");
+                    } else if (ronde < 4) {
                         JOptionPane.showMessageDialog(null, naam + " (ID: " + gast + ")" + " is op 1e plaats beïndigd van ronde " + ronde + " aan tafel " + tafel + " en heeft €" + bedragTweede + " gewonnen");
                         gast = 0;
                     }
@@ -167,12 +166,11 @@ class WinnaarControleren extends JDialog {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            int ID = list.getSelectedValue().getID();
-
             try {
                 if (list.isSelectionEmpty()) {
                     JOptionPane.showMessageDialog(null, "Kies een toernooi om de tweede plaats van te zien");
                 } else {
+                    int ID = list.getSelectedValue().getID();
                     ResultSet rs = ConnectionManager.getConnection().createStatement().executeQuery("select *, (inleggeld*(select count(*) from toernooi_inschrijving where heeft_betaald = 'ja' and toernooi = " + ID + ")*0.25) as aantal from winnaar w join gast g on gast = ID join toernooi t on toernooi = t.ID where plaats = 2 and w.toernooi = " + ID + ";");
                     while (rs.next()) {
                         gast = rs.getInt("gast");
@@ -184,8 +182,8 @@ class WinnaarControleren extends JDialog {
                     }
 
                     if (gast == 0) {
-                        JOptionPane.showMessageDialog(null, "dit toernooi heeft nog geen winnaar");
-                    } else if (ronde == 3) {
+                        JOptionPane.showMessageDialog(null, "dit toernooi heeft nog geen tweede plaats");
+                    } else if (ronde < 4) {
                         JOptionPane.showMessageDialog(null, naam + " (ID: " + gast + ")" + " is op 2e plaats beïndigd van ronde " + ronde + " aan tafel " + tafel + " en heeft €" + bedragTweede + " gewonnen");
                         gast = 0;
                     }
